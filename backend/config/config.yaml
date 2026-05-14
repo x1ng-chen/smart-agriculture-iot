@@ -1,0 +1,43 @@
+server:
+  port: 8080
+  mode: debug  # debug / release / test
+
+database:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: 123456
+  dbname: smart_agriculture
+  charset: utf8mb4
+  max_idle_conns: 10
+  max_open_conns: 100
+
+influxdb:
+  url: http://127.0.0.1:8086
+  token: your_influxdb_token
+  org: smart-agriculture
+  bucket: sensor_data
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+mqtt:
+  broker: tcp://127.0.0.1:1883
+  client_id: smart-agriculture-backend
+  username: ""
+  password: ""
+  topics:
+    - sensor/+/data
+    - sensor/+/heartbeat
+    - event/+/response
+
+jwt:
+  secret: change-me-to-a-secure-random-string
+  expire_hours: 24
+
+log:
+  level: info  # debug / info / warn / error
+  file: logs/app.log

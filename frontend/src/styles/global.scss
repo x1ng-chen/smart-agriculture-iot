@@ -1,0 +1,205 @@
+:root {
+  --bg-primary: #0a1628;
+  --bg-secondary: #0f1d36;
+  --bg-card: rgba(16, 30, 60, 0.7);
+  --bg-card-hover: rgba(22, 40, 75, 0.8);
+  --border-color: rgba(0, 212, 255, 0.15);
+  --border-glow: rgba(0, 212, 255, 0.4);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #00d4ff;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --gradient-cyan: linear-gradient(135deg, #00d4ff, #3b82f6);
+  --gradient-green: linear-gradient(135deg, #10b981, #34d399);
+  --gradient-orange: linear-gradient(135deg, #f59e0b, #fbbf24);
+  --gradient-red: linear-gradient(135deg, #ef4444, #f87171);
+  --gradient-purple: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.1);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.5); }
+
+/* ===== Element Plus Overrides ===== */
+.el-menu { border-right: none !important; }
+
+/* Cards */
+.el-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  color: var(--text-primary) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card) !important;
+  transition: all 0.3s ease;
+}
+.el-card:hover {
+  border-color: var(--border-glow) !important;
+  box-shadow: var(--shadow-glow), var(--shadow-card) !important;
+}
+.el-card__header {
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+.el-card__body {
+  color: var(--text-primary) !important;
+}
+
+/* Tables */
+.el-table {
+  --el-table-bg-color: transparent !important;
+  --el-table-tr-bg-color: transparent !important;
+  --el-table-header-bg-color: rgba(0, 212, 255, 0.06) !important;
+  --el-table-row-hover-bg-color: rgba(0, 212, 255, 0.08) !important;
+  --el-table-border-color: var(--border-color) !important;
+  --el-table-text-color: var(--text-primary) !important;
+  --el-table-header-text-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+.el-table th.el-table__cell {
+  background: rgba(0, 212, 255, 0.06) !important;
+  font-weight: 600;
+  font-size: 13px;
+}
+.el-table .el-table__cell { border-bottom-color: var(--border-color) !important; }
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: rgba(0, 212, 255, 0.03) !important;
+}
+
+/* Pagination */
+.el-pagination {
+  --el-pagination-bg-color: transparent !important;
+  --el-pagination-text-color: var(--text-secondary) !important;
+  --el-pagination-button-color: var(--accent) !important;
+}
+.el-pagination .btn-prev, .el-pagination .btn-next {
+  background: rgba(0, 212, 255, 0.1) !important;
+  border-radius: 6px !important;
+}
+.el-pagination .el-pager li {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border-radius: 6px !important;
+}
+.el-pagination .el-pager li.is-active {
+  background: var(--accent) !important;
+  color: #000 !important;
+  font-weight: bold;
+}
+
+/* Buttons */
+.el-button--primary {
+  --el-button-bg-color: var(--accent) !important;
+  --el-button-border-color: var(--accent) !important;
+  --el-button-hover-bg-color: #00b8e0 !important;
+  --el-button-hover-border-color: #00b8e0 !important;
+  --el-button-text-color: #000 !important;
+  font-weight: 600 !important;
+}
+.el-button--default {
+  --el-button-bg-color: rgba(0, 212, 255, 0.1) !important;
+  --el-button-border-color: rgba(0, 212, 255, 0.3) !important;
+  --el-button-text-color: var(--accent) !important;
+}
+
+/* Inputs & Selects */
+.el-input__wrapper {
+  background: rgba(0, 212, 255, 0.05) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  transition: all 0.3s !important;
+}
+.el-input__wrapper:hover, .el-input__wrapper.is-focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.2) !important;
+}
+.el-input__inner { color: var(--text-primary) !important; }
+.el-input__inner::placeholder { color: var(--text-muted) !important; }
+.el-select .el-input.is-focus .el-input__wrapper {
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.2) !important;
+}
+
+/* Dialogs */
+.el-dialog {
+  --el-dialog-bg-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5) !important;
+}
+.el-dialog__header { border-bottom: 1px solid var(--border-color) !important; }
+.el-dialog__title { color: var(--text-primary) !important; font-weight: 600; }
+
+/* Form */
+.el-form-item__label { color: var(--text-secondary) !important; font-weight: 500; }
+
+/* Message box */
+.el-message-box {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+.el-message-box__title { color: var(--text-primary) !important; }
+.el-message-box__message { color: var(--text-secondary) !important; }
+
+/* Tags */
+.el-tag { border-radius: 6px !important; font-weight: 500 !important; }
+
+/* Breadcrumb */
+.el-breadcrumb__inner { color: var(--text-secondary) !important; font-weight: 500; }
+.el-breadcrumb__item:last-child .el-breadcrumb__inner { color: var(--accent) !important; }
+
+/* Empty */
+.el-empty__description p { color: var(--text-muted) !important; }
+
+/* Loading */
+.el-loading-mask { background: rgba(10, 22, 40, 0.6) !important; backdrop-filter: blur(4px); }
+
+/* ===== Utility classes ===== */
+.stat-value-glow {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  background: var(--gradient-cyan);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}

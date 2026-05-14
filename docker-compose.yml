@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: smartag-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: smartag-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/config/config.yaml:/app/config/config.yaml:ro
+      - ./logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  emqx:
+    image: emqx/emqx:5.3
+    container_name: smartag-emqx
+    ports:
+      - "1883:1883"      # MQTT
+      - "8083:8083"      # MQTT WebSocket
+      - "8084:8084"      # MQTT WebSocket SSL
+      - "18083:18083"    # Dashboard
+    environment:
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD=admin
+    volumes:
+      - ./deploy/emqx/data:/opt/emqx/data
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: smartag-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: your_password
+      MYSQL_DATABASE: smart_agriculture
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - ./deploy/mysql/data:/var/lib/mysql
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartag-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./deploy/redis/data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: smartag-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: your_password_123
+      DOCKER_INFLUXDB_INIT_ORG: smart-agriculture
+      DOCKER_INFLUXDB_INIT_BUCKET: sensor_data
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: your_influxdb_token
+    volumes:
+      - ./deploy/influxdb/data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
