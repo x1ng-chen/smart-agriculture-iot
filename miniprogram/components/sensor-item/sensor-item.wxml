@@ -1,0 +1,12 @@
+<view class="sensor-item {{animClass}}">
+  <view class="sensor-icon">
+    <slot name="icon"></slot>
+  </view>
+  <view class="sensor-body">
+    <view class="sensor-label">{{label}}</view>
+    <view class="sensor-value">{{value}}</view>
+  </view>
+  <view class="sensor-bar" wx:if="{{percent != null}}">
+    <view class="sensor-bar-fill" style="width: {{percent}}%"></view>
+  </view>
+</view>

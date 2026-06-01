@@ -122,7 +122,9 @@ function handleLogout() {
 
 /* === Sidebar === */
 .sidebar {
-  background: linear-gradient(180deg, #0b1730 0%, #0f1f3d 100%);
+  background: rgba(10, 24, 16, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid rgba(0, 212, 255, 0.1);
   display: flex;
   flex-direction: column;
@@ -222,9 +224,10 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   height: 56px !important;
-  background: rgba(15, 29, 54, 0.8);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
-  backdrop-filter: blur(12px);
+  background: rgba(10, 24, 16, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.08);
   padding: 0 24px;
 }
 .header-title {
@@ -275,7 +278,7 @@ function handleLogout() {
 }
 
 /* === Main === */
-.main-area { background: var(--bg-primary); }
+.main-area { background: transparent; }
 .main-content {
   padding: 24px;
   overflow-y: auto;

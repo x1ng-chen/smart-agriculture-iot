@@ -1,0 +1,41 @@
+<view class="alerts">
+  <!-- 筛选 Tab -->
+  <view class="filter-tabs card">
+    <view
+      class="tab tap-scale {{filter === 'all' ? 'active' : ''}}"
+      bindtap="setFilter"
+      data-filter="all"
+    >全 部</view>
+    <view
+      class="tab tap-scale {{filter === 'unresolved' ? 'active' : ''}}"
+      bindtap="setFilter"
+      data-filter="unresolved"
+    >未解决</view>
+    <view
+      class="tab tap-scale {{filter === 'resolved' ? 'active' : ''}}"
+      bindtap="setFilter"
+      data-filter="resolved"
+    >已解决</view>
+  </view>
+
+  <!-- 告警列表 -->
+  <view class="alert-list">
+    <alert-item
+      wx:for="{{alerts}}"
+      wx:key="id"
+      alert="{{item}}"
+      levelMap="{{levelMap}}"
+      bind:resolve="handleResolve"
+    />
+  </view>
+
+  <view class="empty-state" wx:if="{{alerts.length === 0}}">
+    <text class="empty-icon">✅</text>
+    <text class="empty-text">暂无告警</text>
+    <text class="empty-sub">一切运行正常</text>
+  </view>
+
+  <view class="load-more tap-scale" wx:if="{{hasMore}}" bindtap="loadMore">
+    <text>加载更多告警</text>
+  </view>
+</view>

@@ -1,0 +1,62 @@
+page {
+  --bg-primary: #1a1008;
+  --bg-card: rgba(30, 18, 8, 0.72);
+  --bg-card-solid: #1e140c;
+  --border-color: rgba(245, 158, 11, 0.12);
+  --border-glow: rgba(245, 158, 11, 0.35);
+  --text-primary: #fef3c7;
+  --text-secondary: #d4a574;
+  --text-muted: #8b7355;
+  --accent: #f59e0b;
+  --accent-light: #fbbf24;
+  --accent-green: #22c55e;
+  --accent-coral: #f97316;
+  --accent-rose: #f43f5e;
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+/* 全局卡片 */
+.card {
+  background: var(--bg-card);
+  border: 1rpx solid var(--border-color);
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin: 16rpx 24rpx;
+  box-shadow: 0 2rpx 20rpx rgba(0,0,0,0.3);
+}
+
+/* 点击缩放动效 */
+.tap-scale { transition: transform 0.15s ease; }
+.tap-scale:active { transform: scale(0.96); }
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8rpx var(--accent); }
+  50% { box-shadow: 0 0 24rpx var(--accent-light), 0 0 40rpx rgba(245, 158, 11, 0.25); }
+}
+
+/* 渐变发光顶条 */
+.glow-bar {
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 3rpx;
+  border-radius: 50%;
+}
+
+/* 通用淡入 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeInUp 0.35s ease both; }

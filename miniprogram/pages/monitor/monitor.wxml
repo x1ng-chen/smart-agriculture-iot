@@ -1,0 +1,22 @@
+<view class="monitor">
+  <view class="monitor-toolbar">
+    <view class="status-ring {{connected ? 'connected' : 'disconnected'}}">
+      <view class="status-ring-inner"></view>
+    </view>
+    <text class="status-text">{{connected ? '数据同步中' : '连接断开'}}</text>
+    <text class="status-interval">· 每 5s 刷新</text>
+    <view class="status-wave" wx:if="{{connected}}">
+      <view class="wave-bar"></view><view class="wave-bar"></view><view class="wave-bar"></view>
+    </view>
+  </view>
+
+  <view class="device-grid">
+    <device-card wx:for="{{devices}}" wx:key="device_id" device="{{item}}" />
+  </view>
+
+  <view class="empty-state" wx:if="{{devices.length === 0}}">
+    <text class="empty-icon">📡</text>
+    <text class="empty-text">暂无设备数据</text>
+    <text class="empty-sub">请确认设备已连接并上报数据</text>
+  </view>
+</view>

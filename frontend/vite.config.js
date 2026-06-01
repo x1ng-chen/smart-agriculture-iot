@@ -9,6 +9,9 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
+  define: {
+    global: 'globalThis',
+  },
   server: {
     port: 3000,
     proxy: {

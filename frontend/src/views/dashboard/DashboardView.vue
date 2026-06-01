@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Charts Row 1 -->
     <div class="chart-row">
       <div class="chart-panel">
         <div class="panel-header">
@@ -30,11 +30,33 @@
       </div>
       <div class="chart-panel">
         <div class="panel-header">
-          <span class="panel-title">温度趋势</span>
+          <span class="panel-title">土壤温度趋势</span>
           <span class="panel-badge">近24小时</span>
         </div>
         <div class="chart-body">
-          <v-chart :option="tempChartOption" autoresize />
+          <v-chart :option="soilTempChartOption" autoresize />
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="chart-row">
+      <div class="chart-panel">
+        <div class="panel-header">
+          <span class="panel-title">空气温度趋势</span>
+          <span class="panel-badge">近24小时</span>
+        </div>
+        <div class="chart-body">
+          <v-chart :option="airTempChartOption" autoresize />
+        </div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-header">
+          <span class="panel-title">空气湿度趋势</span>
+          <span class="panel-badge">近24小时</span>
+        </div>
+        <div class="chart-body">
+          <v-chart :option="airHumidityChartOption" autoresize />
         </div>
       </div>
     </div>
@@ -84,8 +106,9 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, markRaw, onMounted, onUnmounted, watch } from 'vue'
 import { getDashboardStats, getDevices, getDeviceHistoryData } from '@/api'
+import { useMqttStore } from '@/stores/mqtt'
 import { Cpu, Odometer, Warning, Watermelon } from '@element-plus/icons-vue'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
@@ -96,6 +119,8 @@ import dayjs from 'dayjs'
 
 use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
 
+const mqttStore = useMqttStore()
+
 const stats = reactive({
   onlineDevices: 0, todayIrrigation: 0, activeAlerts: 0, totalWater: 0
 })
@@ -103,10 +128,10 @@ const recentAlerts = ref([])
 const onlineDevices = ref([])
 
 const statCards = ref([
-  { icon: Cpu, value: '0', label: '在线设备' },
-  { icon: Odometer, value: '0', label: '今日灌溉(次)' },
-  { icon: Warning, value: '0', label: '活跃告警' },
-  { icon: Watermelon, value: '0 L', label: '今日用水量' },
+  { icon: markRaw(Cpu), value: '0', label: '在线设备' },
+  { icon: markRaw(Odometer), value: '0', label: '今日灌溉(次)' },
+  { icon: markRaw(Warning), value: '0', label: '活跃告警' },
+  { icon: markRaw(Watermelon), value: '0 L', label: '今日用水量' },
 ])
 
 const alertLevelMap = { info: '信息', warning: '警告', critical: '严重' }
@@ -120,12 +145,30 @@ const moistureChartOption = ref({
   series: []
 })
 
-const tempChartOption = ref({
+const soilTempChartOption = ref({
   tooltip: { trigger: 'axis' },
   legend: { show: true, top: 0, textStyle: { color: '#94a3b8' } },
   grid: { top: 40, right: 20, bottom: 30, left: 45 },
   xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8', fontSize: 11 } },
   yAxis: { type: 'value', name: '°C', nameTextStyle: { color: '#94a3b8' }, axisLine: { show: false }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
+  series: []
+})
+
+const airTempChartOption = ref({
+  tooltip: { trigger: 'axis' },
+  legend: { show: true, top: 0, textStyle: { color: '#94a3b8' } },
+  grid: { top: 40, right: 20, bottom: 30, left: 45 },
+  xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8', fontSize: 11 } },
+  yAxis: { type: 'value', name: '°C', nameTextStyle: { color: '#94a3b8' }, axisLine: { show: false }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
+  series: []
+})
+
+const airHumidityChartOption = ref({
+  tooltip: { trigger: 'axis' },
+  legend: { show: true, top: 0, textStyle: { color: '#94a3b8' } },
+  grid: { top: 40, right: 20, bottom: 30, left: 45 },
+  xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8', fontSize: 11 } },
+  yAxis: { type: 'value', name: '%', nameTextStyle: { color: '#94a3b8' }, axisLine: { show: false }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
   series: []
 })
 
@@ -145,34 +188,46 @@ async function loadChartData() {
     const onlineDevs = devices.filter(d => d.online_status === 1).slice(0, 3)
     if (onlineDevs.length === 0) return
 
-    const moistureSeries = []
-    const tempSeries = []
-    const timeLabels = []
     const colors = ['#00d4ff', '#3b82f6', '#8b5cf6']
 
-    for (let i = 0; i < onlineDevs.length; i++) {
-      const hist = await getDeviceHistoryData(onlineDevs[i].id, { hours: 24 }).catch(() => null)
-      const rows = hist?.data || []
-      if (rows.length > 0 && i === 0) {
+    const results = await Promise.all(
+      onlineDevs.map(d => getDeviceHistoryData(d.id, { hours: 24 }).catch(() => null))
+    )
+
+    const timeLabels = []
+    const moistureSeries = []
+    const soilTempSeries = []
+    const airTempSeries = []
+    const airHumiditySeries = []
+
+    for (let i = 0; i < results.length; i++) {
+      const rows = results[i]?.data || []
+      const name = onlineDevs[i].device_name
+      if (rows.length > 0 && timeLabels.length === 0) {
         timeLabels.push(...rows.map(r => dayjs(r.created_at).format('HH:mm')).reverse())
       }
       moistureSeries.push({
-        name: onlineDevs[i].device_name,
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
+        name, type: 'line', smooth: true, symbol: 'none',
         data: rows.map(r => r.soil_moisture).reverse(),
-        lineStyle: { color: colors[i], width: 2 },
-        itemStyle: { color: colors[i] },
+        lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
         areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
       })
-      tempSeries.push({
-        name: onlineDevs[i].device_name + ' 土壤',
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
+      soilTempSeries.push({
+        name, type: 'line', smooth: true, symbol: 'none',
         data: rows.map(r => r.soil_temp).reverse(),
-        lineStyle: { color: colors[i], width: 2 },
+        lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
+        areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
+      })
+      airTempSeries.push({
+        name, type: 'line', smooth: true, symbol: 'none',
+        data: rows.map(r => r.air_temp).reverse(),
+        lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
+      })
+      airHumiditySeries.push({
+        name, type: 'line', smooth: true, symbol: 'none',
+        data: rows.map(r => r.air_humidity).reverse(),
+        lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
+        areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
       })
     }
 
@@ -181,15 +236,27 @@ async function loadChartData() {
       xAxis: { ...moistureChartOption.value.xAxis, data: timeLabels },
       series: moistureSeries,
     }
-    tempChartOption.value = {
-      ...tempChartOption.value,
-      xAxis: { ...tempChartOption.value.xAxis, data: timeLabels },
-      series: tempSeries,
+    soilTempChartOption.value = {
+      ...soilTempChartOption.value,
+      xAxis: { ...soilTempChartOption.value.xAxis, data: timeLabels },
+      series: soilTempSeries,
+    }
+    airTempChartOption.value = {
+      ...airTempChartOption.value,
+      xAxis: { ...airTempChartOption.value.xAxis, data: timeLabels },
+      series: airTempSeries,
+    }
+    airHumidityChartOption.value = {
+      ...airHumidityChartOption.value,
+      xAxis: { ...airHumidityChartOption.value.xAxis, data: timeLabels },
+      series: airHumiditySeries,
     }
   } catch (e) { /* ignore */ }
 }
 
-onMounted(async () => {
+let timer = null
+
+async function loadData() {
   try {
     const res = await getDashboardStats()
     const data = res.data
@@ -204,8 +271,43 @@ onMounted(async () => {
     recentAlerts.value = data.recentAlerts || []
     onlineDevices.value = data.onlineDeviceList || []
   } catch (e) { /* ignore */ }
+}
+
+onMounted(async () => {
+  loadData()
   loadChartData()
+  mqttStore.connect()
+  timer = setInterval(() => {
+    loadData()
+    loadChartData()
+  }, 5000)
 })
+
+onUnmounted(() => {
+  clearInterval(timer)
+  mqttStore.disconnect()
+})
+
+watch(() => mqttStore.latestData, () => {
+  const dataMap = mqttStore.latestData
+  const sns = Object.keys(dataMap)
+  if (sns.length === 0) return
+  let onlineCount = 0
+  for (const sn of sns) {
+    if (dataMap[sn] && Date.now() - dataMap[sn].timestamp < 30000) onlineCount++
+  }
+  statCards.value[0].value = String(onlineCount)
+
+  // Update device list online status from MQTT presence
+  for (const d of onlineDevices.value) {
+    const latest = dataMap[d.device_sn]
+    if (latest && Date.now() - latest.timestamp < 30000) {
+      d.online_status = 1
+    } else if (latest && Date.now() - latest.timestamp >= 30000) {
+      d.online_status = 0
+    }
+  }
+}, { deep: true })
 </script>
 
 <style scoped>

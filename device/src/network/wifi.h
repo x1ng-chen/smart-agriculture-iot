@@ -1,5 +1,3 @@
-/* wifi.h - WiFi连接管理 */
-
 #ifndef WIFI_H
 #define WIFI_H
 

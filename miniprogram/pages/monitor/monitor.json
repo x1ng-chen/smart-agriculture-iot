@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "device-card": "/components/device-card/device-card"
+  },
+  "navigationBarTitleText": "设备监控",
+  "enablePullDownRefresh": true
+}

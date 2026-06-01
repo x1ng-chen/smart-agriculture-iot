@@ -8,17 +8,21 @@ import alertRoutes from './alerts.js'
 import scheduleRoutes from './schedules.js'
 import exportRoutes from './export.js'
 import dashboardRoutes from './dashboard.js'
+import huaweiCallbackRoutes from './huawei-callback.js'
 import { authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
-// è®¤è¯æ¥å£ (æ— éœ€ç™»å½•)
+// ÈÏÖ¤½Ó¿Ú (ÎŞĞèµÇÂ¼)
 router.use('/auth', authRoutes)
 
-// ä»ªè¡¨ç›˜ç»Ÿè®¡
+// »ªÎªÔÆ IoT Êı¾İ×ª·¢»Øµ÷ (ÎŞĞèµÇÂ¼, ÓÉ»ªÎªÔÆÆ½Ì¨µ÷ÓÃ)
+router.use('/huawei', huaweiCallbackRoutes)
+
+// ÒÇ±íÅÌÍ³¼Æ
 router.use('/dashboard', authMiddleware, dashboardRoutes)
 
-// ä»¥ä¸‹æ¥å£éœ€è¦ç™»å½•
+// ÒÔÏÂ½Ó¿ÚĞèÒªµÇÂ¼
 router.use('/devices', authMiddleware, deviceRoutes)
 router.use('/plots', authMiddleware, plotRoutes)
 router.use('/strategies', authMiddleware, strategyRoutes)

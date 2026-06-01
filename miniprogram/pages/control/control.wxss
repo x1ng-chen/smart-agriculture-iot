@@ -1,0 +1,216 @@
+.control { padding: 20rpx 24rpx 40rpx; }
+
+/* 设备信息 */
+.device-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.device-dot {
+  width: 16rpx; height: 16rpx;
+  border-radius: 50%;
+}
+
+.device-dot.on { background: #22c55e; box-shadow: 0 0 12rpx rgba(34,197,94,0.5); animation: glow-pulse 2s infinite; }
+.device-dot.off { background: #f43f5e; }
+
+.device-info { display: flex; flex-direction: column; }
+.device-name { font-size: 34rpx; font-weight: 700; color: var(--text-primary); }
+.device-sn {
+  font-size: 22rpx; color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+  background: rgba(0,0,0,0.2);
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  border: 1rpx solid var(--border-color);
+  display: inline-block;
+  margin-top: 4rpx;
+}
+
+/* 传感器数据 */
+.current-sensors { margin-top: 24rpx; }
+
+.sensor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18rpx 0;
+  border-top: 1rpx solid rgba(245,158,11,0.08);
+}
+
+.sensor-row:first-child { border-top: none; }
+
+.sensor-label { color: var(--text-muted); font-size: 28rpx; }
+
+.sensor-val {
+  font-weight: 800;
+  font-size: 36rpx;
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 章节标题 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 22rpx;
+  color: var(--text-primary);
+}
+
+/* 时长选择 */
+.duration-pills {
+  display: flex;
+  gap: 14rpx;
+  flex-wrap: wrap;
+  margin-bottom: 28rpx;
+}
+
+.pill {
+  padding: 16rpx 36rpx;
+  border: 2rpx solid rgba(245,158,11,0.2);
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.pill:active { transform: scale(0.94); }
+
+.pill.active {
+  background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(249,115,22,0.1));
+  border-color: #f59e0b;
+  color: #f59e0b;
+  box-shadow: 0 0 20rpx rgba(245,158,11,0.15);
+}
+
+/* 倒计时 */
+.countdown {
+  text-align: center;
+  padding: 30rpx 0;
+  margin-bottom: 16rpx;
+}
+
+.countdown-num {
+  font-size: 88rpx;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.countdown-label {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-top: 8rpx;
+}
+
+/* 按钮 */
+.control-buttons { margin-bottom: 16rpx; }
+
+.btn-start {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 700;
+  border-radius: 48rpx;
+  border: none;
+  box-shadow: 0 10rpx 32rpx rgba(245,158,11,0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-start:active {
+  transform: scale(0.96);
+  box-shadow: 0 6rpx 18rpx rgba(245,158,11,0.2);
+}
+
+.btn-stop {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 700;
+  border-radius: 48rpx;
+  border: none;
+  box-shadow: 0 10rpx 32rpx rgba(244,63,94,0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-stop:active {
+  transform: scale(0.96);
+  box-shadow: 0 6rpx 18rpx rgba(244,63,94,0.2);
+}
+
+/* 灌溉记录 */
+.log-list { display: flex; flex-direction: column; gap: 10rpx; }
+
+.log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18rpx 22rpx;
+  background: rgba(245,158,11,0.03);
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(245,158,11,0.06);
+  transition: background 0.2s;
+}
+
+.log-item:active { background: rgba(245,158,11,0.08); }
+
+.log-left { display: flex; gap: 10rpx; align-items: center; }
+
+.log-trigger {
+  padding: 4rpx 14rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  background: rgba(245,158,11,0.15);
+  color: #f59e0b;
+}
+
+.log-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-weight: 500;
+}
+
+.log-status.completed { background: rgba(34,197,94,0.12); color: #4ade80; }
+.log-status.running   { background: rgba(249,115,22,0.15); color: #fb923c; }
+
+.log-right { text-align: right; }
+
+.log-duration {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.log-time {
+  display: block;
+  font-size: 22rpx;
+  color: var(--text-muted);
+  margin-top: 4rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 36rpx 0;
+  font-size: 24rpx;
+}

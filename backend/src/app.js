@@ -7,6 +7,10 @@ import { initTables, query } from './db.js'
 import { error } from './utils/response.js'
 import routes from './routes/index.js'
 import { createMqttBroker } from './mqtt-broker.js'
+import { SerialManager } from './serial-gateway.js'
+import { setBrokerRef } from './routes/huawei-callback.js'
+
+let serialManager = null
 
 async function seedAdmin() {
   const rows = await query('SELECT count(*) as cnt FROM users WHERE username = ?', ['admin'])
@@ -15,52 +19,65 @@ async function seedAdmin() {
   const hash = await bcrypt.hash('admin123', 10)
   await query(
     'INSERT INTO users (username, password, real_name, role) VALUES (?, ?, ?, ?)',
-    ['admin', hash, '系统管理员', 'admin']
+    ['admin', hash, 'ϵͳ����Ա', 'admin']
   )
-  console.log('[seed] 默认管理员已创建 (admin / admin123)')
+  console.log('[seed] Ĭ�Ϲ���Ա�Ѵ��� (admin / admin123)')
 }
 
 async function start() {
-  // 初始化数据库表
   await initTables()
-  console.log('[db] 数据库表初始化完成')
+  console.log('[db] ���ݿ����ʼ�����')
 
-  // 创建默认管理员
   await seedAdmin()
 
   const app = express()
 
-  // 中间件
   app.use(cors())
   app.use(express.json())
   if (config.server.env === 'development') {
     app.use(morgan('dev'))
   }
 
-  // 路由
   app.use('/api/v1', routes)
 
-  // 404
   app.use((req, res) => {
-    res.status(404).json(error('接口不存在'))
+    res.status(404).json(error('�ӿڲ�����'))
   })
 
-  // 全局错误处理
   app.use((err, req, res, _next) => {
     console.error(err)
-    res.status(500).json(error('服务器内部错误'))
+    res.status(500).json(error('�������ڲ�����'))
   })
 
   app.listen(config.server.port, () => {
-    console.log(`[server] 服务启动: http://localhost:${config.server.port}`)
-    console.log(`[server] 环境: ${config.server.env}`)
+    console.log(`[server] ��������: http://localhost:${config.server.port}`)
+    console.log(`[server] ����: ${config.server.env}`)
   })
 
-  // 启动 MQTT Broker (WebSocket)
-  await createMqttBroker()
+  // �����ڲ� MQTT Broker (WebSocket ��ǰ�˶��� + ��������)
+  const broker = await createMqttBroker()
+
+  // �������أ���ѡ��
+  serialManager = new SerialManager(broker)
+  if (config.serial.autoConnect) {
+    await serialManager.autoConnect()
+  }
+  app.set('serialManager', serialManager)
+
+  // ���� �� �Զ���Ȼص�
+  broker.on('autoIrrigate', async ({ deviceSn, durationSec }) => {
+    const result = await serialManager.sendCommandBySn(deviceSn, 'pump_on', durationSec)
+    console.log(`[serial] auto-irrigate: sn=${deviceSn} result=${result.success}`)
+  })
+
+  // 华为云 HTTP Webhook → 内部 MQTT
+  setBrokerRef(broker)
+  console.log('[app] cmd flow: Frontend -> Backend -> Huawei REST API -> Device')
+
+  console.log('[app] data flow: Device -> WiFi/MQTT -> Huawei IoT -> HTTP Webhook -> Backend -> DB + Internal MQTT -> Frontend')
 }
 
 start().catch(err => {
-  console.error('启动失败:', err)
+  console.error('����ʧ��:', err)
   process.exit(1)
 })

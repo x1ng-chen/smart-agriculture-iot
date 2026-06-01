@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {},
+  "properties": {
+    "label": { "type": "String", "value": "" },
+    "value": { "type": "String", "value": "0" },
+    "color": { "type": "String", "value": "cyan" }
+  }
+}

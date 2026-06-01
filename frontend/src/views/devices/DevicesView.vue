@@ -25,14 +25,28 @@
             {{ row.online_status === 1 ? '在线' : '离线' }}
           </template>
         </el-table-column>
+        <el-table-column label="连接方式" width="100">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.connection_type === 'uart' ? 'success' : 'info'">
+              {{ row.connection_type === 'uart' ? '串口' : 'WiFi' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="串口" width="90">
+          <template #default="{ row }">
+            <span v-if="row.com_port" class="sn-code">{{ row.com_port }}</span>
+            <span v-else style="color:var(--text-muted)">未绑定</span>
+          </template>
+        </el-table-column>
         <el-table-column label="最近在线" width="170">
           <template #default="{ row }">
             <span class="time-cell">{{ row.last_online_at || '—' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
+            <el-button type="primary" link @click="handleSerialBind(row)">绑定串口</el-button>
             <el-button type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -45,6 +59,29 @@
         @current-change="fetchData"
       />
     </div>
+
+    <!-- 串口绑定对话框 -->
+    <el-dialog v-model="serialDialogVisible" title="绑定串口" width="460px" top="15vh">
+      <el-form label-width="80px">
+        <el-form-item label="设备">
+          <span>{{ serialDevice?.device_name }} ({{ serialDevice?.device_sn }})</span>
+        </el-form-item>
+        <el-form-item label="当前串口">
+          <span v-if="serialDevice?.com_port" class="sn-code">{{ serialDevice?.com_port }}</span>
+          <span v-else style="color:var(--text-muted)">未绑定</span>
+        </el-form-item>
+        <el-form-item label="选择串口">
+          <el-select v-model="selectedComPort" style="width:100%" placeholder="请选择 COM 口" :loading="serialPortsLoading" @visible-change="onSerialSelectOpen">
+            <el-option v-for="p in serialPorts" :key="p.path" :label="`${p.path} - ${p.friendlyName || '未知设备'}`" :value="p.path" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="serialDialogVisible = false">取消</el-button>
+        <el-button v-if="serialDevice?.com_port" type="warning" :loading="serialSubmitting" @click="handleUnbindSerial">解绑</el-button>
+        <el-button type="primary" :loading="serialSubmitting" @click="handleBindSerial" :disabled="!selectedComPort">绑定</el-button>
+      </template>
+    </el-dialog>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑设备' : '添加设备'" width="520px" top="10vh">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -106,7 +143,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getDevices, createDevice, updateDevice, deleteDevice, getPlots } from '@/api'
+import { getDevices, createDevice, updateDevice, deleteDevice, getPlots, getSerialPorts, bindSerialPort, unbindSerialPort } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tableData = ref([]); const loading = ref(false); const page = ref(1); const total = ref(0); const pageSize = 10
@@ -146,6 +183,55 @@ async function handleDelete(id) {
   await ElMessageBox.confirm('确认删除该设备？', '提示', { type: 'warning' })
   await deleteDevice(id); ElMessage.success('删除成功'); fetchData()
 }
+
+// 串口管理
+const serialDialogVisible = ref(false)
+const serialSubmitting = ref(false)
+const serialPortsLoading = ref(false)
+const serialDevice = ref(null)
+const serialPorts = ref([])
+const selectedComPort = ref('')
+
+function handleSerialBind(row) {
+  serialDevice.value = row
+  selectedComPort.value = row.com_port || ''
+  serialDialogVisible.value = true
+}
+
+async function onSerialSelectOpen(visible) {
+  if (!visible) return
+  serialPortsLoading.value = true
+  try {
+    const res = await getSerialPorts()
+    serialPorts.value = res.data || []
+  } catch { serialPorts.value = [] }
+  finally { serialPortsLoading.value = false }
+}
+
+async function handleBindSerial() {
+  if (!selectedComPort.value || !serialDevice.value) return
+  serialSubmitting.value = true
+  try {
+    await bindSerialPort(serialDevice.value.id, selectedComPort.value)
+    ElMessage.success('串口绑定成功')
+    serialDialogVisible.value = false
+    fetchData()
+  } catch { /* ignore */ }
+  finally { serialSubmitting.value = false }
+}
+
+async function handleUnbindSerial() {
+  if (!serialDevice.value) return
+  serialSubmitting.value = true
+  try {
+    await unbindSerialPort(serialDevice.value.id)
+    ElMessage.success('串口已解绑')
+    serialDialogVisible.value = false
+    fetchData()
+  } catch { /* ignore */ }
+  finally { serialSubmitting.value = false }
+}
+
 onMounted(fetchData)
 </script>
 

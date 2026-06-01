@@ -58,6 +58,9 @@ export async function initTables() {
       device_name VARCHAR(128),
       device_type VARCHAR(32) NOT NULL DEFAULT 'bearpi_nano',
       firmware_ver VARCHAR(32),
+      connection_type VARCHAR(16) NOT NULL DEFAULT 'uart',
+      com_port VARCHAR(32) DEFAULT NULL,
+      huawei_device_id VARCHAR(128) DEFAULT NULL,
       plot_id BIGINT,
       latitude DOUBLE,
       longitude DOUBLE,
@@ -67,6 +70,7 @@ export async function initTables() {
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       INDEX idx_devices_sn (device_sn),
+      INDEX idx_devices_huawei (huawei_device_id),
       INDEX idx_devices_plot (plot_id),
       FOREIGN KEY (plot_id) REFERENCES plots(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
@@ -153,5 +157,19 @@ export async function initTables() {
 
   for (const sql of tables) {
     await query(sql)
+  }
+
+  // 兼容已有数据库：添加 huawei_device_id 字段
+  try {
+    await query("ALTER TABLE devices ADD COLUMN huawei_device_id VARCHAR(128) DEFAULT NULL, ADD INDEX idx_devices_huawei (huawei_device_id)")
+  } catch (e) {
+    if (e.errno !== 1060) console.error('[db] alter table error:', e.message)
+  }
+
+  // 兼容已有数据库：添加微信登录字段
+  try {
+    await query("ALTER TABLE users ADD COLUMN wechat_openid VARCHAR(64) DEFAULT NULL AFTER email, ADD UNIQUE INDEX idx_users_wechat_openid (wechat_openid)")
+  } catch (e) {
+    if (e.errno !== 1060) console.error('[db] alter table error:', e.message)
   }
 }

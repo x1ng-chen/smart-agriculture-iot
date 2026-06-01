@@ -1,0 +1,42 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/dashboard/dashboard",
+    "pages/monitor/monitor",
+    "pages/control/control",
+    "pages/alerts/alerts"
+  ],
+  "window": {
+    "navigationBarTitleText": "智慧农业灌溉",
+    "navigationBarBackgroundColor": "#1a1008",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#1a1008"
+  },
+  "tabBar": {
+    "color": "#8b7355",
+    "selectedColor": "#f59e0b",
+    "backgroundColor": "#1a1008",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/dashboard",
+        "text": "仪表盘",
+        "iconPath": "images/tab-dashboard.png",
+        "selectedIconPath": "images/tab-dashboard-active.png"
+      },
+      {
+        "pagePath": "pages/monitor/monitor",
+        "text": "设备监控",
+        "iconPath": "images/tab-monitor.png",
+        "selectedIconPath": "images/tab-monitor-active.png"
+      },
+      {
+        "pagePath": "pages/alerts/alerts",
+        "text": "告警中心",
+        "iconPath": "images/tab-alerts.png",
+        "selectedIconPath": "images/tab-alerts-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

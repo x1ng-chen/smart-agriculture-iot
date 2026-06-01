@@ -1,0 +1,78 @@
+<view class="control">
+  <!-- 设备信息 -->
+  <view class="card">
+    <view class="device-header">
+      <view class="device-dot {{device.online_status === 1 ? 'on' : 'off'}}"></view>
+      <view class="device-info">
+        <text class="device-name">{{device.device_name || '设备'}}</text>
+        <text class="device-sn">{{device.device_sn}}</text>
+      </view>
+    </view>
+
+    <!-- 当前传感器数据 -->
+    <view class="current-sensors" wx:if="{{sensorData}}">
+      <view class="sensor-row">
+        <text class="sensor-label">土壤湿度</text>
+        <text class="sensor-val">{{sensorData.soil_moisture != null ? sensorData.soil_moisture + '%' : '--'}}</text>
+      </view>
+      <view class="sensor-row">
+        <text class="sensor-label">土壤温度</text>
+        <text class="sensor-val">{{sensorData.soil_temp != null ? sensorData.soil_temp + '°C' : '--'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 灌溉时长 -->
+  <view class="card">
+    <view class="section-title">选择灌溉时长</view>
+    <view class="duration-pills">
+      <view
+        class="pill {{duration === item ? 'active' : ''}}"
+        wx:for="{{durations}}"
+        wx:key="*this"
+        bindtap="selectDuration"
+        data-val="{{item}}"
+      >{{item}}秒</view>
+    </view>
+
+    <!-- 倒计时 -->
+    <view class="countdown" wx:if="{{running && remaining > 0}}">
+      <text class="countdown-num">{{remaining}}</text>
+      <text class="countdown-label">秒后自动停止</text>
+    </view>
+
+    <!-- 控制按钮 -->
+    <view class="control-buttons">
+      <button
+        wx:if="{{!running}}"
+        class="btn-start"
+        bindtap="handleStart"
+        loading="{{loading}}"
+      >开始灌溉</button>
+      <button
+        wx:else
+        class="btn-stop"
+        bindtap="handleStop"
+        loading="{{loading}}"
+      >停止灌溉</button>
+    </view>
+  </view>
+
+  <!-- 近期灌溉记录 -->
+  <view class="card">
+    <view class="section-title">近期灌溉记录</view>
+    <view class="log-list">
+      <view class="log-item" wx:for="{{logs}}" wx:key="id">
+        <view class="log-left">
+          <text class="log-trigger">{{item.trigger_type === 'manual' ? '手动' : '自动'}}</text>
+          <text class="log-status {{item.status}}">{{item.status === 'completed' ? '已完成' : '运行中'}}</text>
+        </view>
+        <view class="log-right">
+          <text class="log-duration">{{item.duration_sec || 0}}s</text>
+          <text class="log-time">{{item.start_time}}</text>
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{logs.length === 0}}">暂无灌溉记录</view>
+    </view>
+  </view>
+</view>

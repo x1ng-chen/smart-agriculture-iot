@@ -1,0 +1,26 @@
+<view class="device-card {{animClass}} {{device.online_status !== 1 ? 'offline' : ''}}">
+  <view class="card-top-bar {{device.online_status === 1 ? 'bar-online' : 'bar-offline'}}"></view>
+  <view class="card-header tap-scale">
+    <view class="card-header-left">
+      <view class="card-dot {{device.online_status === 1 ? 'dot-on' : 'dot-off'}}"></view>
+      <text class="card-name">{{device.device_name || '未知设备'}}</text>
+    </view>
+    <text class="card-sn">{{device.device_sn}}</text>
+  </view>
+
+  <view class="card-sensors">
+    <sensor-item label="土壤湿度" value="{{device.soil_moisture != null ? device.soil_moisture + '%' : '--'}}" percent="{{device.soil_moisture}}" />
+    <sensor-item label="土壤温度" value="{{device.soil_temp != null ? device.soil_temp + '°C' : '--'}}" />
+    <sensor-item label="空气温度" value="{{device.air_temp != null ? device.air_temp + '°C' : '--'}}" />
+    <sensor-item label="空气湿度" value="{{device.air_humidity != null ? device.air_humidity + '%' : '--'}}" percent="{{device.air_humidity}}" />
+    <sensor-item label="光照强度" value="{{device.light != null ? device.light + ' lux' : '--'}}" />
+    <sensor-item label="更新时间" value="{{device.updated_at || device.last_seen || '--'}}" />
+  </view>
+
+  <view class="card-footer" wx:if="{{device.online_status === 1}}">
+    <button class="irrigate-btn tap-scale" hover-class="irrigate-btn-hover" bindtap="onNavigateControl" data-id="{{device.device_id}}">
+      <text class="btn-icon">💧</text>
+      <text>控制灌溉</text>
+    </button>
+  </view>
+</view>

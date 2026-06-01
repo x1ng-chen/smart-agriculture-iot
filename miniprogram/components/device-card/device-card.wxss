@@ -1,0 +1,87 @@
+.device-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1rpx solid var(--border-color);
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: fadeInUp 0.4s ease both;
+}
+
+.device-card:active {
+  transform: scale(0.985);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.35);
+}
+
+.device-card.offline { opacity: 0.55; }
+
+.card-top-bar { height: 4rpx; }
+.bar-online { background: linear-gradient(90deg, #f59e0b, #fbbf24, #f97316); }
+.bar-offline { background: linear-gradient(90deg, #6b5640, #4a3f30); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 24rpx 14rpx;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.card-dot {
+  width: 14rpx; height: 14rpx;
+  border-radius: 50%;
+}
+.dot-on { background: #22c55e; box-shadow: 0 0 12rpx rgba(34,197,94,0.6); animation: glow-pulse 2s infinite; }
+.dot-off { background: #f43f5e; }
+
+.card-name { font-weight: 600; font-size: 30rpx; color: var(--text-primary); }
+.card-sn {
+  font-size: 22rpx; color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+  background: rgba(0,0,0,0.25);
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  border: 1rpx solid var(--border-color);
+}
+
+.card-sensors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  padding: 8rpx 24rpx 20rpx;
+}
+
+.card-footer { padding: 0 24rpx 24rpx; }
+
+.irrigate-btn {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 40rpx;
+  border: none;
+  box-shadow: 0 6rpx 20rpx rgba(245,158,11,0.3);
+  transition: all 0.2s ease;
+}
+
+.irrigate-btn-hover {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx rgba(245,158,11,0.2);
+  opacity: 0.9;
+}
+
+.btn-icon { font-size: 28rpx; }

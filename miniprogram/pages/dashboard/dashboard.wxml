@@ -1,0 +1,54 @@
+<view class="dashboard">
+  <!-- 统计卡片 -->
+  <view class="stat-grid">
+    <stat-card label="在线设备" value="{{stats.onlineDevices}}" color="amber">
+      <text slot="icon">📡</text>
+    </stat-card>
+    <stat-card label="今日灌溉(次)" value="{{stats.todayIrrigation}}" color="green">
+      <text slot="icon">💧</text>
+    </stat-card>
+    <stat-card label="活跃告警" value="{{stats.activeAlerts}}" color="coral">
+      <text slot="icon">⚠️</text>
+    </stat-card>
+    <stat-card label="今日用水量" value="{{stats.totalWater}} L" color="rose">
+      <text slot="icon">🪣</text>
+    </stat-card>
+  </view>
+
+  <!-- 设备在线状态 -->
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">📋 设备在线状态</text>
+      <text class="section-sub">共 {{stats.onlineDeviceList ? stats.onlineDeviceList.length : 0}} 台</text>
+    </view>
+    <view class="device-list">
+      <view class="device-item tap-scale fade-in" wx:for="{{stats.onlineDeviceList}}" wx:key="id" style="animation-delay: {{index * 0.06}}s">
+        <view class="device-dot {{item.online_status === 1 ? 'on' : 'off'}}"></view>
+        <view class="device-info">
+          <view class="device-name">{{item.device_name}}</view>
+          <view class="device-sn-mini">{{item.device_sn}}</view>
+        </view>
+        <view class="device-status-badge {{item.online_status === 1 ? 'online' : 'offline'}}">
+          {{item.online_status === 1 ? '在线' : '离线'}}
+        </view>
+      </view>
+      <view class="empty-tip" wx:if="{{stats.onlineDeviceList.length === 0}}">暂无设备</view>
+    </view>
+  </view>
+
+  <!-- 近期告警 -->
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">🔔 近期告警</text>
+      <text class="section-sub" wx:if="{{stats.recentAlerts}}">{{stats.recentAlerts.length}} 条</text>
+    </view>
+    <view class="alert-list">
+      <view class="alert-row fade-in" wx:for="{{stats.recentAlerts}}" wx:key="id" style="animation-delay: {{index * 0.08}}s">
+        <view class="alert-level level-{{item.alert_level}}">{{alertLevelMap[item.alert_level] || item.alert_level}}</view>
+        <view class="alert-msg">{{item.message}}</view>
+        <view class="alert-time">{{item.created_at}}</view>
+      </view>
+      <view class="empty-tip" wx:if="{{stats.recentAlerts.length === 0}}">暂无告警 🎉</view>
+    </view>
+  </view>
+</view>

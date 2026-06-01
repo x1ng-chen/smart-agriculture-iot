@@ -1,8 +1,9 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import https from 'https'
 import config from '../config.js'
-import { findByUsername, findById } from '../models/user.js'
+import { findByUsername, findById, findByWechatOpenid, createWechatUser } from '../models/user.js'
 import { success, error } from '../utils/response.js'
 import { authMiddleware } from '../middleware/auth.js'
 
@@ -58,6 +59,63 @@ router.post('/login', async (req, res) => {
     }))
   } catch (err) {
     console.error('Login error:', err)
+    return res.status(500).json(error('服务器内部错误'))
+  }
+})
+
+// 微信小程序登录
+router.post('/wechat-login', async (req, res) => {
+  try {
+    const { code, nickName, avatarUrl } = req.body
+
+    if (!code) {
+      return res.status(400).json(error('缺少登录凭证code'))
+    }
+
+    // 调用微信 code2session 接口
+    const wechatRes = await new Promise((resolve, reject) => {
+      const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.wechat.appId}&secret=${config.wechat.appSecret}&js_code=${code}&grant_type=authorization_code`
+      https.get(url, (resp) => {
+        let data = ''
+        resp.on('data', chunk => data += chunk)
+        resp.on('end', () => {
+          try {
+            resolve(JSON.parse(data))
+          } catch {
+            reject(new Error('微信接口返回格式异常'))
+          }
+        })
+      }).on('error', reject)
+    })
+
+    if (wechatRes.errcode) {
+      console.error('[wechat-login] code2session error:', wechatRes)
+      return res.status(400).json(error('微信登录失败: ' + (wechatRes.errmsg || '未知错误')))
+    }
+
+    const { openid } = wechatRes
+
+    // 查找或创建用户
+    let user = await findByWechatOpenid(openid)
+    if (!user) {
+      user = await createWechatUser(openid, nickName)
+    }
+
+    const token = jwt.sign(
+      { user_id: user.id, username: user.username, role: user.role },
+      config.jwt.secret,
+      { expiresIn: `${config.jwt.expireHours}h` }
+    )
+
+    return res.json(success({
+      token,
+      user_id: user.id,
+      username: user.username,
+      role: user.role,
+      real_name: user.real_name
+    }))
+  } catch (err) {
+    console.error('[wechat-login] error:', err)
     return res.status(500).json(error('服务器内部错误'))
   }
 })

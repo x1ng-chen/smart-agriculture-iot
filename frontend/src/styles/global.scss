@@ -1,8 +1,8 @@
 :root {
-  --bg-primary: #0a1628;
-  --bg-secondary: #0f1d36;
-  --bg-card: rgba(16, 30, 60, 0.7);
-  --bg-card-hover: rgba(22, 40, 75, 0.8);
+  --bg-primary: rgba(8, 20, 12, 0.7);
+  --bg-secondary: rgba(12, 28, 18, 0.75);
+  --bg-card: rgba(14, 26, 16, 0.65);
+  --bg-card-hover: rgba(18, 34, 20, 0.78);
   --border-color: rgba(0, 212, 255, 0.15);
   --border-glow: rgba(0, 212, 255, 0.4);
   --text-primary: #e2e8f0;
@@ -33,7 +33,7 @@ html, body {
   font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
   font-size: 14px;
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -16,6 +16,11 @@ export const deleteDevice = (id) => http.delete(`/devices/${id}`)
 export const getDeviceLatestData = (id) => http.get(`/devices/${id}/data/latest`)
 export const getDeviceHistoryData = (id, params) => http.get(`/devices/${id}/data/history`, { params })
 
+// 串口管理
+export const getSerialPorts = () => http.get('/devices/serial-ports')
+export const bindSerialPort = (id, comPort) => http.put(`/devices/${id}/serial-port`, { com_port: comPort })
+export const unbindSerialPort = (id) => http.delete(`/devices/${id}/serial-port`)
+
 // 灌溉控制
 export const startIrrigation = (id, data) => http.post(`/devices/${id}/irrigate/start`, data)
 export const stopIrrigation = (id) => http.post(`/devices/${id}/irrigate/stop`)

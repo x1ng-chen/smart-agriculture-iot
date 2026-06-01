@@ -1,0 +1,15 @@
+<view class="stat-card tap-scale {{color}}">
+  <view class="stat-card-bg"></view>
+  <view class="stat-card-shine"></view>
+  <view class="stat-card-glow"></view>
+  <view class="stat-card-content">
+    <view class="stat-icon-box">
+      <slot name="icon"></slot>
+    </view>
+    <view class="stat-info">
+      <view class="stat-value">{{value}}</view>
+      <view class="stat-label">{{label}}</view>
+    </view>
+  </view>
+  <view class="stat-card-sparkle"></view>
+</view>

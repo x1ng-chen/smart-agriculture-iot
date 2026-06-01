@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Agriculture — Time to style the moss industry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== CSS RESET & BASE ========== */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #1a1814;
+  color: #e8e4dc;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== CANVAS LAYER ========== */
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ========== NAVIGATION ========== */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 24px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  mix-blend-mode: difference;
+}
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.9;
+  transition: opacity 0.3s;
+}
+.nav-logo:hover { opacity: 1; }
+.nav-links {
+  display: flex;
+  gap: 36px;
+  align-items: center;
+  list-style: none;
+}
+.nav-links a {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: #fff; }
+.nav-btn-login {
+  padding: 8px 20px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 24px;
+  transition: all 0.3s;
+}
+.nav-btn-login:hover {
+  border-color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+/* ========== HERO SECTION ========== */
+.hero {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 24px;
+}
+.hero-title {
+  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-size: clamp(2.8rem, 6vw, 6.5rem);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  color: #f5f0e8;
+  max-width: 800px;
+  will-change: transform, opacity;
+}
+.hero-title em {
+  font-style: italic;
+  display: block;
+  color: #9bae8c;
+}
+.hero-subtitle {
+  margin-top: 28px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.5);
+  will-change: transform, opacity;
+}
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.4;
+  animation: floatHint 3s ease-in-out infinite;
+}
+.hero-scroll-hint span {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hero-scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(245,240,232,0.6), transparent);
+}
+@keyframes floatHint {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-8px); }
+}
+
+/* ========== SCROLL SECTIONS ========== */
+.content-sections {
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+}
+.content-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+}
+.content-card {
+  max-width: 520px;
+  text-align: center;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.content-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.content-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 400;
+  color: #f5f0e8;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+.content-card p {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: rgba(232,228,220,0.6);
+  font-weight: 300;
+}
+
+/* ========== VIGNETTE OVERLAY ========== */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(26,24,20,0.45) 100%);
+}
+
+/* ========== MOBILE NAV TOGGLE ========== */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 101;
+}
+.nav-toggle span {
+  display: block;
+  width: 24px;
+  height: 1.5px;
+  background: #fff;
+  margin: 5px 0;
+  transition: all 0.3s;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .nav { padding: 20px 24px; }
+  .nav-links { gap: 20px; }
+  .nav-links a { font-size: 0.75rem; }
+  .hero-title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
+  .content-section { padding: 60px 20px; min-height: 70vh; }
+}
+@media (max-width: 480px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: block; }
+  .nav-links.mobile-open {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    background: rgba(26,24,20,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    gap: 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav" id="nav">
+  <a href="#" class="nav-logo">Ankward Corp</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#about">About moss</a></li>
+    <li><a href="#login" class="nav-btn-login">Login</a></li>
+  </ul>
+</nav>
+
+<!-- Three.js Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Hero -->
+<section class="hero">
+  <h1 class="hero-title">
+    Time to style<br>
+    <em>the moss industry</em>
+  </h1>
+  <p class="hero-subtitle">Smart Agriculture &bull; Nature Meets Intelligence</p>
+  <div class="hero-scroll-hint">
+    <span>Scroll</span>
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- Content Sections -->
+<div class="content-sections">
+  <section class="content-section" id="about">
+    <div class="content-card">
+      <h2>Where nature meets<br>precision technology</h2>
+      <p>We cultivate moss with sensor-driven intelligence, bringing centuries of natural wisdom into the age of precision agriculture.</p>
+    </div>
+  </section>
+  <section class="content-section" id="pricing">
+    <div class="content-card">
+      <h2>Grown by data,<br>nurtured by nature</h2>
+      <p>Every square centimeter monitored. Every growth phase optimized. The future of sustainable farming is here.</p>
+    </div>
+  </section>
+</div>
+
+<!-- Vignette -->
+<div class="vignette"></div>
+
+<!-- Three.js Import Map -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ==================== DOM ELEMENTS ====================
+const canvas = document.getElementById('bg-canvas');
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+
+// Mobile nav toggle
+navToggle.addEventListener('click', () => {
+  navLinks.classList.toggle('mobile-open');
+});
+
+// ==================== THREE.JS SETUP ====================
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap for perf
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#1a1814');
+scene.fog = new THREE.Fog('#1a1814', 4, 25);
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 50);
+camera.position.set(0, 1.8, 8.5);
+camera.lookAt(0, 1.2, 0);
+
+// ==================== LIGHTING ====================
+// Warm key light (sunlight)
+const keyLight = new THREE.DirectionalLight('#f5e6d3', 4.5);
+keyLight.position.set(5, 8, 3);
+scene.add(keyLight);
+
+// Cool fill light
+const fillLight = new THREE.DirectionalLight('#c8d8e8', 1.8);
+fillLight.position.set(-3, 2, -2);
+scene.add(fillLight);
+
+// Rim / back light
+const rimLight = new THREE.DirectionalLight('#e8dcc8', 2.2);
+rimLight.position.set(0, 3, -4);
+scene.add(rimLight);
+
+// Soft ambient
+const ambient = new THREE.AmbientLight('#3a4a30', 0.9);
+scene.add(ambient);
+
+// Subtle point light near moss base
+const pointLight = new THREE.PointLight('#7a9a5c', 6, 5, 1.5);
+pointLight.position.set(0, 0.3, 1.2);
+scene.add(pointLight);
+
+// ==================== CUSTOM SHADERS FOR TREE ====================
+// Vertex shader — proximity-driven deformation + organic noise
+const treeVertexShader = /* glsl */ `
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
+  varying vec3 vViewDirection;
+  varying float vHeight;
+  varying float vDistToMouse;
+
+  uniform vec3 uMouseWorld;
+  uniform float uMouseStrength;
+  uniform float uTime;
+  uniform float uProximityRadius;
+
+  // Simple 3D noise
+  float hash(vec3 p) {
+    float h = dot(p, vec3(127.1, 311.7, 74.7));
+    return fract(sin(h) * 43758.5453);
+  }
+
+  float noise3D(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+
+    return mix(
+      mix(
+        mix(hash(i), hash(i + vec3(1,0,0)), f.x),
+        mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x),
+        f.y
+      ),
+      mix(
+        mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+        mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x),
+        f.y
+      ),
+      f.z
+    );
+  }
+
+  void main() {
+    vec3 pos = position;
+    vHeight = pos.y;
+
+    // --- Proximity deformation (geometry-nodes style) ---
+    float distToMouse = distance(pos, uMouseWorld);
+    vDistToMouse = distToMouse;
+
+    // Gaussian influence — strongest near mouse, falls off smoothly
+    float influence = exp(-distToMouse * distToMouse / (uProximityRadius * uProximityRadius));
+    influence *= uMouseStrength;
+
+    // Push surface outward where mouse is near
+    vec3 pushDir = normalize(pos - vec3(0.0, pos.y * 0.6, 0.0)); // radial-ish push
+    float pushAmount = influence * 0.25;
+
+    // Add subtle pull toward mouse at the edge of influence zone
+    float pullZone = exp(-distToMouse * distToMouse / (uProximityRadius * 2.5));
+    vec3 pullDir = normalize(uMouseWorld - pos);
+    float pullAmount = pullZone * uMouseStrength * 0.08;
+
+    // Organic time-based micro-movement
+    float organicNoise = noise3D(pos * 2.5 + uTime * 0.15) * 0.03;
+    organicNoise += noise3D(pos * 5.0 + uTime * 0.3) * 0.015;
+
+    vec3 displacement = pushDir * pushAmount + pullDir * pullAmount + normal * organicNoise;
+    vec3 newPos = pos + displacement;
+
+    vec4 worldPos = modelMatrix * vec4(newPos, 1.0);
+    vWorldPos = worldPos.xyz;
+    vWorldNormal = normalize(mat3(modelMatrix) * (normal + displacement * 0.3));
+
+    vec4 mvPosition = modelViewMatrix * vec4(newPos, 1.0);
+    vViewDirection = normalize(-mvPosition.xyz);
+
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+// Fragment shader — moss + bark procedural texture
+const treeFragmentShader = /* glsl */ `
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
+  varying vec3 vViewDirection;
+  varying float vHeight;
+  varying float vDistToMouse;
+
+  uniform vec3 uLightDir;
+  uniform vec3 uLightColor;
+  uniform vec3 uAmbientColor;
+  uniform vec3 uFillLightDir;
+  uniform vec3 uFillLightColor;
+  uniform vec3 uRimLightDir;
+  uniform vec3 uRimLightColor;
+  uniform float uTime;
+
+  float hash2(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+
+  float noise2D(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash2(i), hash2(i + vec2(1,0)), f.x),
+      mix(hash2(i + vec2(0,1)), hash2(i + vec2(1,1)), f.x),
+      f.y
+    );
+  }
+
+  void main() {
+    vec3 N = normalize(vWorldNormal);
+    vec3 V = normalize(vViewDirection);
+
+    // --- Procedural bark/moss texture ---
+    // Bark lines (vertical streaks)
+    float barkLines = abs(sin(vWorldPos.x * 12.0 + noise2D(vWorldPos.yz * 3.0) * 2.0));
+    barkLines = smoothstep(0.15, 0.35, barkLines);
+
+    // Moss patches (more at bottom, less at top)
+    float mossNoise = noise2D(vWorldPos.xy * 4.0) * 0.5 + noise2D(vWorldPos.yz * 3.5) * 0.5;
+    float mossCoverage = smoothstep(2.5, -0.5, vHeight) * 0.7 + mossNoise * 0.3;
+    mossCoverage = clamp(mossCoverage, 0.2, 1.0);
+
+    // Base colors
+    vec3 barkDark  = vec3(0.22, 0.18, 0.12);
+    vec3 barkLight = vec3(0.32, 0.26, 0.19);
+    vec3 mossDeep  = vec3(0.12, 0.22, 0.08);
+    vec3 mossMid   = vec3(0.18, 0.30, 0.12);
+    vec3 mossBright = vec3(0.28, 0.42, 0.20);
+
+    // Blend bark and moss
+    float mossHeight = smoothstep(2.0, 0.3, vHeight);
+    float barkFactor = (1.0 - mossHeight * mossCoverage) * barkLines;
+    float mossFactor = mossHeight * mossCoverage;
+
+    vec3 barkColor = mix(barkDark, barkLight, barkLines);
+    float mossVariation = noise2D(vWorldPos.xy * 8.0 + vWorldPos.z * 2.0);
+    vec3 mossColor = mix(mossDeep, mossMid, mossVariation);
+    mossColor = mix(mossColor, mossBright, mossNoise * 0.4);
+
+    vec3 baseColor = mix(barkColor, mossColor, mossFactor);
+
+    // --- Lighting ---
+    // Key light (warm sun)
+    float NdotL = max(dot(N, normalize(uLightDir)), 0.0);
+    float diffuse = NdotL * 0.7 + 0.3; // soft diffuse
+
+    // Fill light
+    float fillDiffuse = max(dot(N, normalize(uFillLightDir)), 0.0) * 0.35;
+
+    // Rim light
+    float rim = 1.0 - abs(dot(N, V));
+    rim = pow(rim, 3.5) * 0.45;
+
+    // Subsurface scattering approximation (for moss)
+    float sss = max(0.0, dot(V, -normalize(uLightDir)));
+    sss = pow(sss, 4.0) * 0.15 * mossFactor;
+
+    // Specular highlight
+    vec3 H = normalize(normalize(uLightDir) + V);
+    float spec = pow(max(dot(N, H), 0.0), 32.0) * 0.15;
+
+    // Combine lighting
+    vec3 litColor = baseColor * uAmbientColor * 0.6;
+    litColor += baseColor * uLightColor * diffuse;
+    litColor += baseColor * uFillLightColor * fillDiffuse;
+    litColor += uRimLightColor * rim * 0.3;
+    litColor += mossColor * sss;
+    litColor += uLightColor * spec;
+
+    // Subtle proximity glow (brighter near mouse)
+    float proximityGlow = exp(-vDistToMouse * vDistToMouse / 0.8) * 0.06;
+    litColor += mossBright * proximityGlow;
+
+    // Subtle color grading
+    litColor = mix(litColor, litColor * vec3(1.05, 1.02, 0.95), 0.3); // warm shift
+
+    gl_FragColor = vec4(litColor, 1.0);
+  }
+`;
+
+// ==================== TREE TRUNK GEOMETRY ====================
+// Build an organic tapered cylinder with root flare, radius variation, and subtle bend
+function createTreeTrunkGeometry(radiusBottom = 0.55, radiusTop = 0.18, height = 3.8, segments = 64, rings = 80) {
+  const positions = [];
+  const normals = [];
+  const indices = [];
+
+  for (let j = 0; j <= rings; j++) {
+    const t = j / rings;
+    const y = t * height;
+    // Taper radius with slight curve
+    let baseRadius = radiusBottom + (radiusTop - radiusBottom) * Math.pow(t, 0.7);
+
+    // Root flare at the base (wider at bottom, fades quickly)
+    const rootFlare = 1.0 + Math.exp(-t * 6.0) * 0.7 + Math.exp(-t * 15.0) * 0.4;
+    baseRadius *= rootFlare;
+
+    // Organic radius variation per ring
+    const ringVariation = 1.0 + Math.sin(t * Math.PI * 3.5) * 0.06 + Math.sin(t * Math.PI * 1.7) * 0.08;
+    const r = baseRadius * ringVariation;
+
+    // Subtle trunk bend
+    const bendX = Math.sin(t * Math.PI * 0.7) * 0.12;
+    const bendZ = Math.cos(t * Math.PI * 0.5) * 0.08;
+
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      // Subtle angular variation for organic feel
+      const angleVariation = 1.0 + Math.sin(angle * 5.0 + t * 3.0) * 0.04 + Math.sin(angle * 3.0 + t * 6.0) * 0.03;
+      const rr = r * angleVariation;
+
+      const x = Math.cos(angle) * rr + bendX;
+      const z = Math.sin(angle) * rr + bendZ;
+
+      positions.push(x, y, z);
+
+      // Approximate normal (pointing outward from center axis)
+      const nx = Math.cos(angle);
+      const nz = Math.sin(angle);
+      normals.push(nx, 0.15, nz);
+    }
+  }
+
+  // Generate indices
+  for (let j = 0; j < rings; j++) {
+    for (let i = 0; i < segments; i++) {
+      const a = j * (segments + 1) + i;
+      const b = a + segments + 1;
+      const c = a + 1;
+      const d = b + 1;
+
+      indices.push(a, b, c);
+      indices.push(c, b, d);
+    }
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geom.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+  geom.setIndex(indices);
+
+  return geom;
+}
+
+// Create a secondary thin trunk (sapling / branch)
+function createSaplingGeometry(height = 2.2, radiusBottom = 0.12, radiusTop = 0.04, segments = 32, rings = 40) {
+  const positions = [];
+  const normals = [];
+  const indices = [];
+
+  for (let j = 0; j <= rings; j++) {
+    const t = j / rings;
+    const y = t * height;
+    const baseRadius = radiusBottom + (radiusTop - radiusBottom) * t;
+    const bendX = Math.sin(t * 1.8) * 0.25 + t * 0.6; // leans to the side
+    const bendZ = Math.cos(t * 1.3) * 0.15;
+
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      const angleVar = 1.0 + Math.sin(angle * 3.0 + t * 4.0) * 0.05;
+      const rr = baseRadius * angleVar;
+      positions.push(Math.cos(angle) * rr + bendX, y, Math.sin(angle) * rr + bendZ);
+      normals.push(Math.cos(angle), 0.1, Math.sin(angle));
+    }
+  }
+
+  for (let j = 0; j < rings; j++) {
+    for (let i = 0; i < segments; i++) {
+      const a = j * (segments + 1) + i;
+      const b = a + segments + 1;
+      const c = a + 1;
+      const d = b + 1;
+      indices.push(a, b, c);
+      indices.push(c, b, d);
+    }
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+  geom.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+  geom.setIndex(indices);
+  geom.computeTangents();
+  return geom;
+}
+
+// ==================== TREE MESH ====================
+const treeGeometry = createTreeTrunkGeometry();
+const treeMaterial = new THREE.ShaderMaterial({
+  vertexShader: treeVertexShader,
+  fragmentShader: treeFragmentShader,
+  uniforms: {
+    uMouseWorld:      { value: new THREE.Vector3(0, 1.5, 2) },
+    uMouseStrength:   { value: 0.0 },
+    uTime:            { value: 0 },
+    uProximityRadius: { value: 1.2 },
+    uLightDir:        { value: new THREE.Vector3(5, 8, 3).normalize() },
+    uLightColor:      { value: new THREE.Color('#f5e6d3') },
+    uAmbientColor:    { value: new THREE.Color('#3a4a30') },
+    uFillLightDir:    { value: new THREE.Vector3(-3, 2, -2).normalize() },
+    uFillLightColor:  { value: new THREE.Color('#c8d8e8') },
+    uRimLightDir:     { value: new THREE.Vector3(0, 3, -4).normalize() },
+    uRimLightColor:   { value: new THREE.Color('#e8dcc8') },
+  },
+});
+const treeMesh = new THREE.Mesh(treeGeometry, treeMaterial);
+treeMesh.position.set(0, -0.3, 0);
+scene.add(treeMesh);
+
+// ==================== SAPLING (secondary thin trunk) ====================
+const saplingGeom = createSaplingGeometry();
+const saplingMat = new THREE.ShaderMaterial({
+  vertexShader: treeVertexShader,
+  fragmentShader: treeFragmentShader,
+  uniforms: {
+    uMouseWorld:      { value: new THREE.Vector3(0, 1.0, 2) },
+    uMouseStrength:   { value: 0.0 },
+    uTime:            { value: 0 },
+    uProximityRadius: { value: 1.0 },
+    uLightDir:        { value: new THREE.Vector3(5, 8, 3).normalize() },
+    uLightColor:      { value: new THREE.Color('#f5e6d3') },
+    uAmbientColor:    { value: new THREE.Color('#3a4a30') },
+    uFillLightDir:    { value: new THREE.Vector3(-3, 2, -2).normalize() },
+    uFillLightColor:  { value: new THREE.Color('#c8d8e8') },
+    uRimLightDir:     { value: new THREE.Vector3(0, 3, -4).normalize() },
+    uRimLightColor:   { value: new THREE.Color('#e8dcc8') },
+  },
+});
+const sapling = new THREE.Mesh(saplingGeom, saplingMat);
+sapling.position.set(1.5, -0.6, -1.2);
+scene.add(sapling);
+
+// ==================== MOSS CLUMPS (InstancedMesh) ====================
+const mossGeom = new THREE.SphereGeometry(0.08, 8, 6);
+const mossMaterial = new THREE.MeshStandardMaterial({
+  color: new THREE.Color('#4a7c3f'),
+  roughness: 0.75,
+  metalness: 0.0,
+});
+const mossCount = 280;
+const mossInstanced = new THREE.InstancedMesh(mossGeom, mossMaterial, mossCount);
+mossInstanced.castShadow = false;
+mossInstanced.receiveShadow = false;
+
+const dummy = new THREE.Object3D();
+const mossData = []; // Store position + base scale for animation
+
+for (let i = 0; i < mossCount; i++) {
+  // Place on trunk surface
+  const t = Math.random() * 0.95; // height fraction
+  const angle = Math.random() * Math.PI * 2;
+  const baseR = 0.55 + (0.18 - 0.55) * Math.pow(t, 0.7);
+  const r = baseR + 0.04 + Math.random() * 0.06;
+
+  const x = Math.cos(angle) * r;
+  const y = t * 3.8 - 0.3;
+  const z = Math.sin(angle) * r;
+
+  const scale = 0.4 + Math.random() * 1.2;
+
+  dummy.position.set(x, y, z);
+  dummy.scale.setScalar(scale);
+  dummy.updateMatrix();
+  mossInstanced.setMatrixAt(i, dummy.matrix);
+
+  mossData.push({ baseX: x, baseY: y, baseZ: z, baseScale: scale, angle, t });
+}
+mossInstanced.instanceMatrix.needsUpdate = true;
+scene.add(mossInstanced);
+
+// ==================== GROUND PLANE ====================
+const groundGeom = new THREE.CircleGeometry(6, 64);
+// Displace vertices for organic ground
+const groundPositions = groundGeom.attributes.position.array;
+for (let i = 0; i < groundPositions.length; i += 3) {
+  const x = groundPositions[i];
+  const y = groundPositions[i + 1];
+  const dist = Math.sqrt(x * x + y * y);
+  // Gentle undulation
+  groundPositions[i + 2] = Math.sin(x * 1.8) * Math.cos(y * 1.5) * 0.15
+                         + Math.sin(dist * 2.5) * 0.1
+                         - dist * 0.06; // slight bowl
+}
+groundGeom.computeVertexNormals();
+
+const groundMat = new THREE.MeshStandardMaterial({
+  color: new THREE.Color('#2a2418'),
+  roughness: 0.9,
+  metalness: 0.0,
+});
+const ground = new THREE.Mesh(groundGeom, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -2.25;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ==================== ATMOSPHERE PARTICLES ====================
+const particleCount = 500;
+const particleGeom = new THREE.BufferGeometry();
+const particlePositions = new Float32Array(particleCount * 3);
+const particleSizes = new Float32Array(particleCount);
+
+for (let i = 0; i < particleCount; i++) {
+  particlePositions[i * 3]     = (Math.random() - 0.5) * 10;
+  particlePositions[i * 3 + 1] = Math.random() * 6 - 1;
+  particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+  particleSizes[i] = Math.random() * 3 + 1;
+}
+
+particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+particleGeom.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+
+// Create soft circular particle texture via canvas
+const particleCanvas = document.createElement('canvas');
+particleCanvas.width = 32;
+particleCanvas.height = 32;
+const ctx = particleCanvas.getContext('2d');
+const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+gradient.addColorStop(0, 'rgba(180,210,160,0.7)');
+gradient.addColorStop(0.3, 'rgba(140,180,120,0.3)');
+gradient.addColorStop(0.7, 'rgba(100,150,80,0.05)');
+gradient.addColorStop(1, 'rgba(0,0,0,0)');
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 32, 32);
+const particleTexture = new THREE.CanvasTexture(particleCanvas);
+
+const particleMat = new THREE.PointsMaterial({
+  size: 0.06,
+  map: particleTexture,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  transparent: true,
+  opacity: 0.5,
+  color: new THREE.Color('#b4d2a0'),
+});
+const particles = new THREE.Points(particleGeom, particleMat);
+scene.add(particles);
+
+// ==================== SMALL GROUND PLANTS ====================
+const groundPlantGroup = new THREE.Group();
+const smallPlantGeom = new THREE.ConeGeometry(0.04, 0.15, 5, 3);
+const smallPlantMat = new THREE.MeshStandardMaterial({
+  color: new THREE.Color('#5a7a40'),
+  roughness: 0.7,
+});
+
+for (let i = 0; i < 120; i++) {
+  const angle = Math.random() * Math.PI * 2;
+  const radius = 1.2 + Math.random() * 3.5;
+  const plant = new THREE.Mesh(smallPlantGeom, smallPlantMat);
+  plant.position.set(
+    Math.cos(angle) * radius,
+    -2.2 + Math.random() * 0.1,
+    Math.sin(angle) * radius
+  );
+  plant.rotation.z = (Math.random() - 0.5) * 0.3;
+  plant.rotation.x = (Math.random() - 0.5) * 0.3;
+  plant.scale.setScalar(0.6 + Math.random() * 1.2);
+  groundPlantGroup.add(plant);
+}
+scene.add(groundPlantGroup);
+
+// ==================== GROUND MOSS PATCHES ====================
+const mossPatchGroup = new THREE.Group();
+const patchGeom = new THREE.CircleGeometry(0.15, 16);
+// Rotate to lie flat on ground
+patchGeom.rotateX(-Math.PI / 2);
+
+for (let i = 0; i < 80; i++) {
+  const angle = Math.random() * Math.PI * 2;
+  const radius = 0.6 + Math.random() * 2.8; // around tree base
+  const patchMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color().setHSL(0.22 + Math.random() * 0.08, 0.4 + Math.random() * 0.3, 0.15 + Math.random() * 0.18),
+    roughness: 0.8,
+    metalness: 0.0,
+    side: THREE.DoubleSide,
+  });
+  const patch = new THREE.Mesh(patchGeom, patchMat);
+  patch.position.set(
+    Math.cos(angle) * radius,
+    -2.23 + Math.random() * 0.06,
+    Math.sin(angle) * radius
+  );
+  patch.scale.setScalar(0.6 + Math.random() * 2.0);
+  // Slight random tilt
+  patch.rotation.z = (Math.random() - 0.5) * 0.2;
+  patch.rotation.x += (Math.random() - 0.5) * 0.15;
+  mossPatchGroup.add(patch);
+}
+scene.add(mossPatchGroup);
+
+// ==================== MOUSE TRACKING ====================
+const mouse = { x: 0, y: 0 };           // Raw screen coords (-1 to 1)
+const mouseSmooth = { x: 0, y: 0 };     // Smoothed for UI
+const mouse3D = new THREE.Vector3(0, 1.5, 2);       // Current 3D mouse (lerped)
+const mouse3DTarget = new THREE.Vector3(0, 1.5, 2); // Target 3D mouse
+const raycaster = new THREE.Raycaster();
+const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+// Track mouse on document (not just canvas) for better UX
+document.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+// Touch support
+document.addEventListener('touchmove', (e) => {
+  const touch = e.touches[0];
+  mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+}, { passive: true });
+
+// ==================== SCROLL TRACKING ====================
+let scrollY = 0;
+let scrollSmooth = 0;
+window.addEventListener('scroll', () => {
+  scrollY = window.scrollY;
+});
+
+// ==================== RESIZE HANDLER ====================
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ==================== PROJECT MOUSE TO 3D ====================
+function updateMouse3D() {
+  // Cast ray from camera through mouse position
+  raycaster.setFromCamera(new THREE.Vector2(mouseSmooth.x, mouseSmooth.y), camera);
+
+  // Find intersection with a plane roughly at the tree's mid-depth
+  const treePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0.5);
+  const intersection = new THREE.Vector3();
+  raycaster.ray.intersectPlane(treePlane, intersection);
+
+  if (intersection) {
+    // Clamp to tree bounds
+    intersection.x = THREE.MathUtils.clamp(intersection.x, -1.8, 1.8);
+    intersection.y = THREE.MathUtils.clamp(intersection.y, -0.5, 3.5);
+    mouse3DTarget.copy(intersection);
+  }
+}
+
+// ==================== ANIMATION LOOP ====================
+const clock = new THREE.Clock();
+
+function animate(timestamp) {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.1); // Cap delta to avoid jumps
+  const elapsed = timestamp * 0.001;
+
+  // Smooth mouse interpolation
+  const lerpSpeed = 6.0;
+  mouseSmooth.x += (mouse.x - mouseSmooth.x) * lerpSpeed * dt;
+  mouseSmooth.y += (mouse.y - mouseSmooth.y) * lerpSpeed * dt;
+
+  // Update 3D mouse target
+  updateMouse3D();
+
+  // Smooth 3D mouse lerp
+  mouse3D.lerp(mouse3DTarget, 8.0 * dt);
+
+  // Smooth scroll
+  scrollSmooth += (scrollY - scrollSmooth) * 4.0 * dt;
+
+  // --- Update tree shader uniforms ---
+  // Convert world-space mouse to tree local space (tree is at 0,-0.3,0)
+  const mouseLocal = mouse3D.clone();
+  mouseLocal.y += 0.3;
+  treeMaterial.uniforms.uMouseWorld.value.copy(mouseLocal);
+  treeMaterial.uniforms.uTime.value = elapsed;
+
+  // Update sapling shader — mouse in sapling local space (sapling at 1.5,-0.6,-1.2)
+  const mouseSaplingLocal = mouse3D.clone();
+  mouseSaplingLocal.x -= 1.5;
+  mouseSaplingLocal.y += 0.6;
+  mouseSaplingLocal.z += 1.2;
+  saplingMat.uniforms.uMouseWorld.value.copy(mouseSaplingLocal);
+  saplingMat.uniforms.uTime.value = elapsed;
+  const saplingDist = mouseSaplingLocal.length();
+  const saplingTargetStrength = saplingDist < 1.8 ? 1.0 - saplingDist / 1.8 : 0.0;
+  saplingMat.uniforms.uMouseStrength.value +=
+    (saplingTargetStrength - saplingMat.uniforms.uMouseStrength.value) * 5.0 * dt;
+
+  // Mouse strength — stronger when mouse is close to tree
+  const distToTreeCenter = Math.sqrt(
+    mouse3D.x * mouse3D.x + (mouse3D.y - 1.5) * (mouse3D.y - 1.5)
+  );
+  const targetStrength = distToTreeCenter < 2.5 ? 1.0 - distToTreeCenter / 2.5 : 0.0;
+  treeMaterial.uniforms.uMouseStrength.value +=
+    (targetStrength - treeMaterial.uniforms.uMouseStrength.value) * 5.0 * dt;
+
+  // --- Update moss instances based on proximity ---
+  for (let i = 0; i < mossCount; i++) {
+    const md = mossData[i];
+    const pos = new THREE.Vector3(md.baseX, md.baseY, md.baseZ);
+    const dist = pos.distanceTo(mouse3D);
+
+    // Repel moss near cursor
+    const influence = Math.exp(-dist * dist / 0.5) * 0.12;
+    const pushDir = pos.clone().normalize();
+    const newPos = pos.clone().add(pushDir.multiplyScalar(influence));
+
+    // Scale up slightly near cursor
+    const scaleBoost = 1.0 + Math.exp(-dist * dist / 0.4) * 0.5;
+
+    dummy.position.copy(newPos);
+    dummy.scale.setScalar(md.baseScale * scaleBoost);
+    dummy.updateMatrix();
+    mossInstanced.setMatrixAt(i, dummy.matrix);
+  }
+  mossInstanced.instanceMatrix.needsUpdate = true;
+
+  // --- Camera parallax from mouse + scroll ---
+  const parallaxX = mouseSmooth.x;
+  const parallaxY = mouseSmooth.y;
+  const targetCamX = parallaxX * 0.35;
+  const targetCamY = 1.8 + parallaxY * 0.2 - scrollSmooth * 0.0008;
+  const targetCamZ = 8.5 + scrollSmooth * 0.001;
+  camera.position.x += (targetCamX - camera.position.x) * 3.0 * dt;
+  camera.position.y += (targetCamY - camera.position.y) * 3.0 * dt;
+  camera.position.z += (targetCamZ - camera.position.z) * 3.0 * dt;
+  camera.lookAt(0, 1.2, 0);
+
+  // --- Animate particles ---
+  const posArray = particles.geometry.attributes.position.array;
+  for (let i = 0; i < particleCount; i++) {
+    const idx = i * 3;
+    // Float upward slowly
+    posArray[idx + 1] += dt * (0.15 + Math.sin(i * 0.1 + elapsed) * 0.08);
+    // Slight horizontal drift
+    posArray[idx] += Math.sin(elapsed * 0.5 + i * 0.3) * dt * 0.1;
+
+    // Wrap particles that go too high
+    if (posArray[idx + 1] > 5.5) {
+      posArray[idx + 1] = -1.5;
+      posArray[idx] = (Math.random() - 0.5) * 10;
+      posArray[idx + 2] = (Math.random() - 0.5) * 8;
+    }
+  }
+  particles.geometry.attributes.position.needsUpdate = true;
+
+  // --- Hero title parallax ---
+  const heroTitle = document.querySelector('.hero-title');
+  const heroSubtitle = document.querySelector('.hero-subtitle');
+  if (heroTitle) {
+    heroTitle.style.transform = `translate(${parallaxX * 12}px, ${parallaxY * 8}px)`;
+  }
+  if (heroSubtitle) {
+    heroSubtitle.style.transform = `translate(${parallaxX * -6}px, ${parallaxY * -5}px)`;
+  }
+
+  // Hero section fade on scroll
+  const heroOpacity = Math.max(0, 1 - scrollSmooth / 600);
+  if (heroTitle) heroTitle.style.opacity = heroOpacity;
+  if (heroSubtitle) heroSubtitle.style.opacity = heroOpacity;
+  const scrollHint = document.querySelector('.hero-scroll-hint');
+  if (scrollHint) scrollHint.style.opacity = heroOpacity * 0.4;
+
+  // Pulse point light subtly
+  pointLight.intensity = 6 + Math.sin(elapsed * 1.3) * 0.8 + Math.sin(elapsed * 2.1) * 0.4;
+
+  // Render
+  renderer.render(scene, camera);
+}
+
+// ==================== INITIAL MOUSE PROJECTION ====================
+updateMouse3D();
+mouse3D.copy(mouse3DTarget);
+
+// ==================== SCROLL REVEAL ====================
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('revealed');
+    }
+  });
+}, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.content-card').forEach(card => revealObserver.observe(card));
+
+// ==================== START ====================
+requestAnimationFrame(animate);
+
+// Log for debugging — remove in production
+console.log('🌿 Smart Agriculture 3D — Ready');
+console.log('   Tree vertices:', treeGeometry.attributes.position.count);
+console.log('   Moss instances:', mossCount);
+console.log('   Particles:', particleCount);
+console.log('   Move your mouse over the tree to feel the proximity effect.');
+</script>
+</body>
+</html>

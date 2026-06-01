@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "sensor-item": "/components/sensor-item/sensor-item"
+  },
+  "properties": {
+    "device": { "type": "Object", "value": {} }
+  }
+}

@@ -1,0 +1,22 @@
+<view class="login-page">
+  <view class="login-bg"></view>
+  <view class="login-card">
+    <view class="login-logo">
+      <text class="logo-text">🌱</text>
+    </view>
+    <view class="login-title">智慧农业灌溉系统</view>
+    <view class="login-subtitle">Precision Agriculture · IoT Irrigation</view>
+
+    <button class="login-btn" bindtap="handleLogin" loading="{{loading}}" hover-class="login-btn-hover">
+      微信一键登录
+    </button>
+
+    <view class="login-notice">
+      <text>登录即表示同意《用户服务协议》和《隐私政策》</text>
+    </view>
+
+    <view class="login-error" wx:if="{{errorMsg}}">
+      <text>{{errorMsg}}</text>
+    </view>
+  </view>
+</view>
