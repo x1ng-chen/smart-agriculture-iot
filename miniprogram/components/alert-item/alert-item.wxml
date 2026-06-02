@@ -1,4 +1,5 @@
-<view class="alert-item {{alert.alert_level}}">
+<view class="alert-item spring-press {{alert.alert_level}} {{alert.resolved ? 'is-resolved' : ''}}">
+  <view class="alert-left-bar {{alert.alert_level}}"></view>
   <view class="alert-top">
     <view class="alert-level level-{{alert.alert_level}}">{{levelMap[alert.alert_level] || alert.alert_level}}</view>
     <text class="alert-device">{{alert.device_name || '未知设备'}}</text>
@@ -9,6 +10,6 @@
   <view class="alert-msg">{{alert.message}}</view>
   <view class="alert-bottom">
     <text class="alert-time">{{alert.created_at}}</text>
-    <text class="alert-resolve tap-scale" wx:if="{{!alert.resolved}}" bindtap="onResolve" data-id="{{alert.id}}">标记已解决</text>
+    <text class="alert-resolve spring-press" wx:if="{{!alert.resolved}}" bindtap="onResolve" data-id="{{alert.id}}">标记已解决</text>
   </view>
 </view>

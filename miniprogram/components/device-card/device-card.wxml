@@ -1,8 +1,10 @@
-<view class="device-card {{animClass}} {{device.online_status !== 1 ? 'offline' : ''}}">
+<view class="device-card {{device.online_status !== 1 ? 'offline' : ''}}">
   <view class="card-top-bar {{device.online_status === 1 ? 'bar-online' : 'bar-offline'}}"></view>
-  <view class="card-header tap-scale">
+  <view class="card-header spring-press">
     <view class="card-header-left">
-      <view class="card-dot {{device.online_status === 1 ? 'dot-on' : 'dot-off'}}"></view>
+      <view class="card-dot {{device.online_status === 1 ? 'dot-on' : 'dot-off'}}">
+        <view class="dot-pulse" wx:if="{{device.online_status === 1}}"></view>
+      </view>
       <text class="card-name">{{device.device_name || '未知设备'}}</text>
     </view>
     <text class="card-sn">{{device.device_sn}}</text>
@@ -18,9 +20,9 @@
   </view>
 
   <view class="card-footer" wx:if="{{device.online_status === 1}}">
-    <button class="irrigate-btn tap-scale" hover-class="irrigate-btn-hover" bindtap="onNavigateControl" data-id="{{device.device_id}}">
+    <view class="irrigate-btn spring-press" bindtap="onNavigateControl" data-id="{{device.device_id}}">
       <text class="btn-icon">💧</text>
       <text>控制灌溉</text>
-    </button>
+    </view>
   </view>
 </view>

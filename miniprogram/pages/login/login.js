@@ -13,6 +13,9 @@ Page({
     }
   },
 
+  onCardTouch() {},
+  onCardRelease() {},
+
   async handleLogin() {
     this.setData({ loading: true, errorMsg: '' })
 
@@ -26,7 +29,6 @@ Page({
 
       const { code } = loginRes
 
-      // 获取用户信息（可选）
       let nickName = ''
       try {
         const profileRes = await new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-<view class="stat-card tap-scale {{color}}">
+<view class="stat-card spring-press {{color}}">
   <view class="stat-card-bg"></view>
   <view class="stat-card-shine"></view>
   <view class="stat-card-glow"></view>
@@ -11,5 +11,4 @@
       <view class="stat-label">{{label}}</view>
     </view>
   </view>
-  <view class="stat-card-sparkle"></view>
 </view>

@@ -210,11 +210,84 @@ await startIrrigation(device.id, { duration_sec: dur })
 
 ---
 
+<!-- _header: '小程序' -->
+
+## 小程序 — 技术方案
+
+<div class="columns">
+<div>
+
+**技术栈**
+- 框架：微信原生 WXML + WXSS + JS
+- API 基地址：`http://47.96.100.108:8081`
+- 认证：wx.login → code 换 JWT
+- 实时数据：HTTP 轮询（5s）
+- 共用后端 API，零额外接口
+
+**为什么选原生框架？**
+- 包体积最小（无框架运行时）
+- 启动速度最快
+- 避免 uni-app / Taro 兼容层损耗
+
+</div>
+<div>
+
+**为什么用 HTTP 轮询？**
+- 小程序 WebSocket 连接数有限
+- 用户停留短，5s 轮询足够
+- mqtt.js 需 Buffer polyfill
+- 降低实现复杂度
+
+**技术对比**
+- Web 端：Vue 3 + Element Plus + MQTT WebSocket
+- 小程序：原生框架 + 手写组件 + HTTP 轮询
+- 共用后端 API + 数据库 + 华为云 IoT
+
+</div>
+</div>
+
+---
+
+## 小程序 — 页面全览（5 页 · 48 文件）
+
+| 页面 | 路径 | 核心功能 |
+|------|------|---------|
+| **登录** | `pages/login` | 微信一键登录，wx.login → JWT |
+| **仪表盘** | `pages/dashboard` | 4 统计卡片 + 设备列表 + 近期告警 |
+| **设备监控** | `pages/monitor` | 传感器卡片网格，3 列布局展示 6 项指标 |
+| **灌溉控制** | `pages/control` | 时长药丸选择 + 开始/停止 + 倒计时 + 记录 |
+| **告警中心** | `pages/alerts` | 全部/未解决/已解决筛选 + 分页 + 标记已解决 |
+
+**4 个可复用组件**: `stat-card` / `device-card` / `sensor-item` / `alert-item`
+
+---
+
+## 小程序 — 电影级动态交互设计
+
+<div class="tiny">
+
+| 动效 | 技术实现 | 应用场景 |
+|------|---------|---------|
+| **spring-press** | `cubic-bezier(0.34,1.56,0.64,1)` 弹性缩放 | 所有按钮、卡片、列表项触感反馈 |
+| **staggerIn** | CSS @keyframes + inline animation-delay 错落入场 | 每个页面列表项依次淡入上移 |
+| **dot-pulse** | 伪元素 scale + opacity 呼吸涟漪 | 在线设备绿色状态指示灯 |
+| **pill-ripple** | 激活药丸边框扩散脉冲 | 灌溉时长选择器选中态 |
+| **btn-shimmer** | 倾斜光条 translateX 无限扫过 | 开始灌溉 / 登录按钮 |
+| **wave** | 5 条 scaleY + opacity 错相波动 | 监控页数据同步状态栏 |
+| **particle-float** | 6 粒子 XY 漂移 + opacity 呼吸 | 登录页背景氛围 |
+
+</div>
+
+**设计系统**：深科技蓝 #0B0F19 → #1A1F2C + 液态毛玻璃卡片 + accent #00b4d8
+**性能保障**：全部使用 `transform` + `opacity`（GPU 合成层，零重排）
+
+---
+
 <!-- _header: '二、数据库' -->
 
 ## 数据库 — MySQL 8.0 表结构
 
-<div class="small">
+<div style="font-size:0.45em; line-height:1.2;">
 
 | 表名 | 核心字段 | 说明 |
 |------|---------|------|

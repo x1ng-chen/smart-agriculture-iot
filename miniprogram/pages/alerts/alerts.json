@@ -1,7 +1,5 @@
 {
-  "usingComponents": {
-    "alert-item": "/components/alert-item/alert-item"
-  },
+  "usingComponents": {},
   "navigationBarTitleText": "告警中心",
   "enablePullDownRefresh": true
 }

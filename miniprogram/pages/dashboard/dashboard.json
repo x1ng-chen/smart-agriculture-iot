@@ -1,7 +1,5 @@
 {
-  "usingComponents": {
-    "stat-card": "/components/stat-card/stat-card"
-  },
+  "usingComponents": {},
   "navigationBarTitleText": "仪表盘",
   "enablePullDownRefresh": true
 }

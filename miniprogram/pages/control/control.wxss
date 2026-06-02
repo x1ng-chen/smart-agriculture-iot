@@ -1,6 +1,13 @@
-.control { padding: 20rpx 24rpx 40rpx; }
+.control {
+  position: relative;
+  padding: 20rpx 24rpx 40rpx;
+  min-height: 100vh;
+}
 
-/* 设备信息 */
+/* ═══════════════ Device Header ═══════════════ */
+
+.device-card-header { position: relative; z-index: 1; }
+
 .device-header {
   display: flex;
   align-items: center;
@@ -10,58 +17,75 @@
 .device-dot {
   width: 16rpx; height: 16rpx;
   border-radius: 50%;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
 }
+.device-dot.on  { background: #06d6a0; animation: glow-pulse-green 2s infinite; }
+.device-dot.off { background: #ff6b6b; }
 
-.device-dot.on { background: #22c55e; box-shadow: 0 0 12rpx rgba(34,197,94,0.5); animation: glow-pulse 2s infinite; }
-.device-dot.off { background: #f43f5e; }
+.dot-pulse {
+  position: absolute;
+  width: 30rpx; height: 30rpx;
+  border-radius: 50%;
+  border: 1px solid rgba(6,214,160,0.3);
+  animation: dot-ripple 1.8s ease-out infinite;
+}
+@keyframes dot-ripple {
+  0%   { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
 
 .device-info { display: flex; flex-direction: column; }
 .device-name { font-size: 34rpx; font-weight: 700; color: var(--text-primary); }
 .device-sn {
   font-size: 22rpx; color: var(--text-muted);
   font-family: 'Courier New', monospace;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.25);
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
-  border: 1rpx solid var(--border-color);
+  border: 1px solid var(--border-color);
   display: inline-block;
   margin-top: 4rpx;
+  width: fit-content;
 }
 
-/* 传感器数据 */
+/* ═══════════════ Sensor Data ═══════════════ */
+
 .current-sensors { margin-top: 24rpx; }
 
 .sensor-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18rpx 0;
-  border-top: 1rpx solid rgba(245,158,11,0.08);
+  padding: 16rpx 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
-
 .sensor-row:first-child { border-top: none; }
 
 .sensor-label { color: var(--text-muted); font-size: 28rpx; }
 
 .sensor-val {
   font-weight: 800;
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-family: 'Courier New', monospace;
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(180deg, #48cae4 0%, #00b4d8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* 章节标题 */
+/* ═══════════════ Section Title ═══════════════ */
+
 .section-title {
   font-size: 30rpx;
   font-weight: 700;
   margin-bottom: 22rpx;
   color: var(--text-primary);
 }
+.irrigation-card { position: relative; z-index: 1; }
 
-/* 时长选择 */
+/* ═══════════════ Duration Pills ═══════════════ */
+
 .duration-pills {
   display: flex;
   gap: 14rpx;
@@ -70,38 +94,75 @@
 }
 
 .pill {
-  padding: 16rpx 36rpx;
-  border: 2rpx solid rgba(245,158,11,0.2);
-  border-radius: 14rpx;
+  position: relative;
+  padding: 18rpx 38rpx;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
   font-size: 28rpx;
-  font-family: 'Courier New', monospace;
   font-weight: 600;
   color: var(--text-muted);
-  background: transparent;
-  transition: all 0.2s ease;
+  background: rgba(0, 180, 216, 0.04);
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
-.pill:active { transform: scale(0.94); }
+.pill-num { font-family: 'Courier New', monospace; font-size: 32rpx; }
+.pill-unit { font-size: 22rpx; opacity: 0.7; }
 
 .pill.active {
-  background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(249,115,22,0.1));
-  border-color: #f59e0b;
-  color: #f59e0b;
-  box-shadow: 0 0 20rpx rgba(245,158,11,0.15);
+  background: linear-gradient(135deg, rgba(0,180,216,0.2), rgba(6,214,160,0.1));
+  border-color: rgba(0, 180, 216, 0.5);
+  color: #48cae4;
+  box-shadow:
+    0 0 24rpx rgba(0,180,216,0.15),
+    inset 0 1rpx 0 rgba(255,255,255,0.04);
 }
 
-/* 倒计时 */
+/* Active pill ripple pulse */
+.pill-ripple {
+  position: absolute;
+  inset: -2rpx;
+  border-radius: 18rpx;
+  border: 1px solid rgba(0, 180, 216, 0.3);
+  animation: pill-ripple-pulse 1.5s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes pill-ripple-pulse {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.08); opacity: 0; }
+}
+
+/* ═══════════════ Countdown ═══════════════ */
+
 .countdown {
   text-align: center;
-  padding: 30rpx 0;
+  padding: 24rpx 0;
   margin-bottom: 16rpx;
 }
 
+.countdown-ring {
+  position: relative;
+  width: 180rpx; height: 180rpx;
+  margin: 0 auto 16rpx;
+}
+
+.countdown-ring-inner {
+  position: absolute;
+  inset: 12rpx;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+}
+
 .countdown-num {
-  font-size: 88rpx;
+  font-size: 72rpx;
   font-weight: 800;
   font-family: 'Courier New', monospace;
-  background: linear-gradient(180deg, #22c55e, #16a34a);
+  background: linear-gradient(180deg, #06d6a0, #00b4d8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -111,51 +172,57 @@
   display: block;
   font-size: 24rpx;
   color: var(--text-muted);
-  margin-top: 8rpx;
 }
 
-/* 按钮 */
+/* ═══════════════ Control Buttons ═══════════════ */
+
 .control-buttons { margin-bottom: 16rpx; }
 
-.btn-start {
+.btn-main {
+  position: relative;
   width: 100%;
   height: 96rpx;
-  line-height: 96rpx;
-  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-  color: #fff;
-  font-size: 34rpx;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 48rpx;
-  border: none;
-  box-shadow: 0 10rpx 32rpx rgba(245,158,11,0.3);
-  transition: all 0.2s ease;
+  overflow: hidden;
 }
 
-.btn-start:active {
-  transform: scale(0.96);
-  box-shadow: 0 6rpx 18rpx rgba(245,158,11,0.2);
+.btn-start {
+  background: linear-gradient(135deg, #00b4d8 0%, #0096c7 100%);
+  box-shadow: 0 10rpx 36rpx rgba(0,180,216,0.3);
 }
 
 .btn-stop {
-  width: 100%;
-  height: 96rpx;
-  line-height: 96rpx;
-  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #e55a5a 100%);
+  box-shadow: 0 10rpx 36rpx rgba(255,107,107,0.3);
+}
+
+.btn-text {
   color: #fff;
   font-size: 34rpx;
   font-weight: 700;
-  border-radius: 48rpx;
-  border: none;
-  box-shadow: 0 10rpx 32rpx rgba(244,63,94,0.3);
-  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
-.btn-stop:active {
-  transform: scale(0.96);
-  box-shadow: 0 6rpx 18rpx rgba(244,63,94,0.2);
+/* Shine sweep across button */
+.btn-shine {
+  position: absolute;
+  top: 0; left: -80%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transform: skewX(-15deg);
+  animation: btn-shimmer 3s ease-in-out infinite;
+}
+@keyframes btn-shimmer {
+  0%, 100% { left: -80%; }
+  50%      { left: 120%; }
 }
 
-/* 灌溉记录 */
+/* ═══════════════ Irrigation Logs ═══════════════ */
+
 .log-list { display: flex; flex-direction: column; gap: 10rpx; }
 
 .log-item {
@@ -163,13 +230,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 18rpx 22rpx;
-  background: rgba(245,158,11,0.03);
+  background: rgba(0, 180, 216, 0.03);
   border-radius: 14rpx;
-  border: 1rpx solid rgba(245,158,11,0.06);
-  transition: background 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
-
-.log-item:active { background: rgba(245,158,11,0.08); }
 
 .log-left { display: flex; gap: 10rpx; align-items: center; }
 
@@ -178,8 +242,8 @@
   border-radius: 6rpx;
   font-size: 20rpx;
   font-weight: 600;
-  background: rgba(245,158,11,0.15);
-  color: #f59e0b;
+  background: rgba(0,180,216,0.15);
+  color: #48cae4;
 }
 
 .log-status {
@@ -188,29 +252,14 @@
   border-radius: 6rpx;
   font-weight: 500;
 }
-
-.log-status.completed { background: rgba(34,197,94,0.12); color: #4ade80; }
-.log-status.running   { background: rgba(249,115,22,0.15); color: #fb923c; }
+.log-status.completed { background: rgba(6,214,160,0.12); color: #06d6a0; }
+.log-status.running   { background: rgba(0,180,216,0.15); color: #48cae4; }
 
 .log-right { text-align: right; }
-
-.log-duration {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
+.log-duration { display: block; font-size: 28rpx; font-weight: 700; color: var(--text-primary); }
 .log-time {
   display: block;
   font-size: 22rpx;
   color: var(--text-muted);
   margin-top: 4rpx;
-}
-
-.empty-tip {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 36rpx 0;
-  font-size: 24rpx;
 }

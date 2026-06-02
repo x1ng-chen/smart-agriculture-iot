@@ -1,17 +1,29 @@
+/* ═══════════════════════════════════════════════════
+   Cinematic Design System — Deep Tech + Liquid Glass
+   ═══════════════════════════════════════════════════ */
+
 page {
-  --bg-primary: #1a1008;
-  --bg-card: rgba(30, 18, 8, 0.72);
-  --bg-card-solid: #1e140c;
-  --border-color: rgba(245, 158, 11, 0.12);
-  --border-glow: rgba(245, 158, 11, 0.35);
-  --text-primary: #fef3c7;
-  --text-secondary: #d4a574;
-  --text-muted: #8b7355;
-  --accent: #f59e0b;
-  --accent-light: #fbbf24;
-  --accent-green: #22c55e;
-  --accent-coral: #f97316;
-  --accent-rose: #f43f5e;
+  --bg-primary: #0B0F19;
+  --bg-secondary: #111624;
+  --bg-tertiary: #161B2C;
+  --bg-card: rgba(20, 26, 44, 0.55);
+  --bg-card-hover: rgba(26, 33, 54, 0.72);
+  --border-color: rgba(255, 255, 255, 0.07);
+  --border-glow: rgba(0, 180, 216, 0.2);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --text-primary: #e4ecf7;
+  --text-secondary: #9aa8c7;
+  --text-muted: #556080;
+  --accent: #00b4d8;
+  --accent-light: #48cae4;
+  --accent-glow: rgba(0, 180, 216, 0.3);
+  --accent-green: #06d6a0;
+  --accent-green-glow: rgba(6, 214, 160, 0.3);
+  --accent-coral: #ff6b6b;
+  --accent-coral-glow: rgba(255, 107, 107, 0.25);
+  --accent-rose: #e76f51;
+  --accent-amber: #f0a500;
+  --accent-amber-glow: rgba(240, 165, 0, 0.25);
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -20,43 +32,199 @@ page {
   line-height: 1.5;
 }
 
-/* 全局卡片 */
+/* ═══════════════════════════════════════════════════
+   Liquid Glass Card
+   ═══════════════════════════════════════════════════ */
+
 .card {
+  position: relative;
   background: var(--bg-card);
-  border: 1rpx solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 20rpx;
   padding: 28rpx;
   margin: 16rpx 24rpx;
-  box-shadow: 0 2rpx 20rpx rgba(0,0,0,0.3);
+  box-shadow:
+    0 4rpx 32rpx rgba(0, 0, 0, 0.4),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* 点击缩放动效 */
-.tap-scale { transition: transform 0.15s ease; }
-.tap-scale:active { transform: scale(0.96); }
-
-/* 脉冲动画 */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+/* Top light bar on cards */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  border-radius: 50%;
+  pointer-events: none;
 }
+
+/* Subtle inner highlight */
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 60rpx;
+  background: linear-gradient(180deg, rgba(255,255,255,0.015) 0%, transparent 100%);
+  border-radius: 20rpx 20rpx 0 0;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   Spring Press — elastic micro-interaction
+   ═══════════════════════════════════════════════════ */
+
+.spring-press {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  will-change: transform;
+}
+
+.spring-press-hover {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.5);
+  border-color: var(--border-glow);
+}
+
+/* ═══════════════════════════════════════════════════
+   Ripple Effect
+   ═══════════════════════════════════════════════════ */
+
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: ripple-expand 0.6s cubic-bezier(0, 0.5, 0.5, 1) both;
+  pointer-events: none;
+}
+
+@keyframes ripple-expand {
+  0%   { width: 0; height: 0; opacity: 0.7; }
+  100% { width: 300rpx; height: 300rpx; opacity: 0; margin-left: -150rpx; margin-top: -150rpx; }
+}
+
+/* ═══════════════════════════════════════════════════
+   Staggered Entrance Animation System
+   ═══════════════════════════════════════════════════ */
+
+@keyframes staggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(36rpx) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: staggerIn 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* ═══════════════════════════════════════════════════
+   Glow Pulse — ambient living light
+   ═══════════════════════════════════════════════════ */
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 8rpx var(--accent); }
-  50% { box-shadow: 0 0 24rpx var(--accent-light), 0 0 40rpx rgba(245, 158, 11, 0.25); }
+  0%, 100% { box-shadow: 0 0 8rpx var(--accent-glow); }
+  50%      { box-shadow: 0 0 24rpx var(--accent-glow), 0 0 48rpx rgba(0,180,216,0.12); }
 }
 
-/* 渐变发光顶条 */
-.glow-bar {
+@keyframes glow-pulse-green {
+  0%, 100% { box-shadow: 0 0 8rpx var(--accent-green-glow); }
+  50%      { box-shadow: 0 0 24rpx var(--accent-green-glow), 0 0 48rpx rgba(6,214,160,0.12); }
+}
+
+@keyframes glow-pulse-amber {
+  0%, 100% { box-shadow: 0 0 8rpx var(--accent-amber-glow); }
+  50%      { box-shadow: 0 0 24rpx var(--accent-amber-glow), 0 0 48rpx rgba(240,165,0,0.1); }
+}
+
+@keyframes glow-pulse-coral {
+  0%, 100% { box-shadow: 0 0 8rpx var(--accent-coral-glow); }
+  50%      { box-shadow: 0 0 24rpx var(--accent-coral-glow), 0 0 48rpx rgba(255,107,107,0.1); }
+}
+
+/* ═══════════════════════════════════════════════════
+   Floating / Breathing ambient motion
+   ═══════════════════════════════════════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8rpx); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════
+   Shimmer — light sweep across surface
+   ═══════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.shimmer-overlay {
   position: absolute;
-  top: 0; left: 10%; right: 10%;
-  height: 3rpx;
-  border-radius: 50%;
+  top: 0; left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
 }
 
-/* 通用淡入 */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20rpx); }
-  to { opacity: 1; transform: translateY(0); }
+/* ═══════════════════════════════════════════════════
+   Page transition — cinematic fade
+   ═══════════════════════════════════════════════════ */
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(12rpx); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.fade-in { animation: fadeInUp 0.35s ease both; }
+.page-enter {
+  animation: pageEnter 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* ═══════════════════════════════════════════════════
+   Ambient background grid / noise texture
+   ═══════════════════════════════════════════════════ */
+
+.ambient-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(0, 180, 216, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 50%, rgba(6, 214, 160, 0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 40% 85%, rgba(0, 180, 216, 0.03) 0%, transparent 40%),
+    linear-gradient(180deg, #0B0F19 0%, #111624 50%, #0B0F19 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   Empty state
+   ═══════════════════════════════════════════════════ */
+
+.empty-tip {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32rpx 0;
+  font-size: 24rpx;
+}

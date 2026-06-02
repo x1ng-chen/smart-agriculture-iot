@@ -1,15 +1,18 @@
-<view class="control">
-  <!-- 设备信息 -->
-  <view class="card">
+<view class="control page-enter">
+  <view class="ambient-bg"></view>
+
+  <!-- 设备信息卡片 -->
+  <view class="card device-card-header">
     <view class="device-header">
-      <view class="device-dot {{device.online_status === 1 ? 'on' : 'off'}}"></view>
+      <view class="device-dot {{device.online_status === 1 ? 'on' : 'off'}}">
+        <view class="dot-pulse" wx:if="{{device.online_status === 1}}"></view>
+      </view>
       <view class="device-info">
         <text class="device-name">{{device.device_name || '设备'}}</text>
         <text class="device-sn">{{device.device_sn}}</text>
       </view>
     </view>
 
-    <!-- 当前传感器数据 -->
     <view class="current-sensors" wx:if="{{sensorData}}">
       <view class="sensor-row">
         <text class="sensor-label">土壤湿度</text>
@@ -22,47 +25,64 @@
     </view>
   </view>
 
-  <!-- 灌溉时长 -->
-  <view class="card">
+  <!-- 灌溉控制卡片 -->
+  <view class="card irrigation-card">
     <view class="section-title">选择灌溉时长</view>
+
+    <!-- 时长药丸选择器 -->
     <view class="duration-pills">
       <view
-        class="pill {{duration === item ? 'active' : ''}}"
+        class="pill ripple-container spring-press {{duration === item ? 'active' : ''}}"
         wx:for="{{durations}}"
         wx:key="*this"
         bindtap="selectDuration"
         data-val="{{item}}"
-      >{{item}}秒</view>
+      >
+        <text class="pill-num">{{item}}</text>
+        <text class="pill-unit">秒</text>
+        <!-- 激活波纹 -->
+        <view class="pill-ripple" wx:if="{{duration === item}}"></view>
+      </view>
     </view>
 
-    <!-- 倒计时 -->
-    <view class="countdown" wx:if="{{running && remaining > 0}}">
-      <text class="countdown-num">{{remaining}}</text>
+    <!-- 倒计时显示 -->
+    <view class="countdown {{running ? 'running' : ''}}" wx:if="{{running && remaining > 0}}">
+      <view class="countdown-ring">
+        <view class="countdown-ring-inner">
+          <text class="countdown-num">{{remaining}}</text>
+        </view>
+        <!-- 圆形进度环 -->
+        <view class="ring-progress" style="--progress: {{(duration - remaining) / duration}}"></view>
+      </view>
       <text class="countdown-label">秒后自动停止</text>
     </view>
 
     <!-- 控制按钮 -->
     <view class="control-buttons">
-      <button
+      <view
         wx:if="{{!running}}"
-        class="btn-start"
+        class="btn-main btn-start ripple-container spring-press"
         bindtap="handleStart"
-        loading="{{loading}}"
-      >开始灌溉</button>
-      <button
+      >
+        <view class="btn-shine"></view>
+        <text class="btn-text">{{loading ? '启动中...' : '开始灌溉'}}</text>
+      </view>
+      <view
         wx:else
-        class="btn-stop"
+        class="btn-main btn-stop ripple-container spring-press"
         bindtap="handleStop"
-        loading="{{loading}}"
-      >停止灌溉</button>
+      >
+        <view class="btn-shine"></view>
+        <text class="btn-text">{{loading ? '停止中...' : '停止灌溉'}}</text>
+      </view>
     </view>
   </view>
 
-  <!-- 近期灌溉记录 -->
+  <!-- 灌溉记录 -->
   <view class="card">
     <view class="section-title">近期灌溉记录</view>
     <view class="log-list">
-      <view class="log-item" wx:for="{{logs}}" wx:key="id">
+      <view class="log-item spring-press stagger-item" wx:for="{{logs}}" wx:key="id" style="animation-delay: {{index * 0.06}}s">
         <view class="log-left">
           <text class="log-trigger">{{item.trigger_type === 'manual' ? '手动' : '自动'}}</text>
           <text class="log-status {{item.status}}">{{item.status === 'completed' ? '已完成' : '运行中'}}</text>

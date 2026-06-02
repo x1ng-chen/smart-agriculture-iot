@@ -9,5 +9,14 @@ App({
       this.globalData.token = token
       this.globalData.userInfo = wx.getStorageSync('userInfo') || null
     }
+  },
+
+  /* Stagger animation helper for page-level entrance */
+  triggerStagger(selector, context, baseDelay) {
+    const delay = baseDelay || 60
+    const query = wx.createSelectorQuery()
+    if (context) query.in(context)
+    query.selectAll(selector).boundingClientRect(() => {}).exec()
+    return delay
   }
 })

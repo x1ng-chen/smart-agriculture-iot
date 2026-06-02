@@ -26,9 +26,7 @@ Page({
     this.loadAll()
   },
 
-  onUnload() {
-    this.clearCountdown()
-  },
+  onUnload() { this.clearCountdown() },
 
   async loadAll() {
     const { deviceId } = this.data
@@ -48,7 +46,8 @@ Page({
   },
 
   selectDuration(e) {
-    this.setData({ duration: e.currentTarget.dataset.val })
+    const val = e.currentTarget.dataset.val
+    this.setData({ duration: val })
   },
 
   async handleStart() {

@@ -8,14 +8,14 @@
   ],
   "window": {
     "navigationBarTitleText": "智慧农业灌溉",
-    "navigationBarBackgroundColor": "#1a1008",
+    "navigationBarBackgroundColor": "#0B0F19",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#1a1008"
+    "backgroundColor": "#0B0F19"
   },
   "tabBar": {
-    "color": "#8b7355",
-    "selectedColor": "#f59e0b",
-    "backgroundColor": "#1a1008",
+    "color": "#556080",
+    "selectedColor": "#00b4d8",
+    "backgroundColor": "#0D1220",
     "borderStyle": "black",
     "list": [
       {

@@ -1,4 +1,4 @@
-<view class="sensor-item {{animClass}}">
+<view class="sensor-item">
   <view class="sensor-icon">
     <slot name="icon"></slot>
   </view>

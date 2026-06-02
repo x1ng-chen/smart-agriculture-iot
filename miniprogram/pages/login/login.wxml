@@ -1,15 +1,26 @@
 <view class="login-page">
+  <!-- 动态背景 -->
   <view class="login-bg"></view>
-  <view class="login-card">
+  <!-- 背景粒子 -->
+  <view class="login-particles">
+    <view class="particle" wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" style="--i: {{item}}; --x: {{item * 17}}%; --d: {{3 + item * 1.2}}s"></view>
+  </view>
+
+  <!-- 登录卡片 -->
+  <view class="login-card spring-press" bindtouchstart="onCardTouch" bindtouchend="onCardRelease">
+    <!-- 顶部光条 -->
+    <view class="login-card-bar"></view>
+
     <view class="login-logo">
       <text class="logo-text">🌱</text>
     </view>
     <view class="login-title">智慧农业灌溉系统</view>
-    <view class="login-subtitle">Precision Agriculture · IoT Irrigation</view>
+    <view class="login-subtitle">Smart Agriculture · IoT Precision Control</view>
 
-    <button class="login-btn" bindtap="handleLogin" loading="{{loading}}" hover-class="login-btn-hover">
-      微信一键登录
-    </button>
+    <view class="login-btn ripple-container spring-press" bindtap="handleLogin" hover-class="none">
+      <view class="btn-shine"></view>
+      <text class="btn-text">{{loading ? '登录中...' : '微信一键登录'}}</text>
+    </view>
 
     <view class="login-notice">
       <text>登录即表示同意《用户服务协议》和《隐私政策》</text>

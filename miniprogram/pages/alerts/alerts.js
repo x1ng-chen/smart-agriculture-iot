@@ -56,12 +56,15 @@ Page({
     this.loadAlerts()
   },
 
+  handleResolveTap(e) {
+    const id = e.currentTarget.dataset.id
+    this.handleResolve({ detail: { id } })
+  },
+
   async handleResolve(e) {
     try {
       await put('/alerts/' + e.detail.id + '/resolve')
       wx.showToast({ title: '已标记解决', icon: 'success' })
-
-      // 更新本地列表
       const alerts = this.data.alerts.map(a => {
         if (a.id === e.detail.id) return { ...a, resolved: 1 }
         return a

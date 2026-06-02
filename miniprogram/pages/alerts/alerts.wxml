@@ -1,32 +1,48 @@
-<view class="alerts">
+<view class="alerts page-enter">
+  <view class="ambient-bg"></view>
+
   <!-- 筛选 Tab -->
-  <view class="filter-tabs card">
-    <view
-      class="tab tap-scale {{filter === 'all' ? 'active' : ''}}"
-      bindtap="setFilter"
-      data-filter="all"
-    >全 部</view>
-    <view
-      class="tab tap-scale {{filter === 'unresolved' ? 'active' : ''}}"
-      bindtap="setFilter"
-      data-filter="unresolved"
-    >未解决</view>
-    <view
-      class="tab tap-scale {{filter === 'resolved' ? 'active' : ''}}"
-      bindtap="setFilter"
-      data-filter="resolved"
-    >已解决</view>
+  <view class="filter-tabs">
+    <view class="tab-inner">
+      <view
+        class="tab spring-press {{filter === 'all' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="all"
+      >全部</view>
+      <view
+        class="tab spring-press {{filter === 'unresolved' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="unresolved"
+      >未解决</view>
+      <view
+        class="tab spring-press {{filter === 'resolved' ? 'active' : ''}}"
+        bindtap="setFilter"
+        data-filter="resolved"
+      >已解决</view>
+      <!-- 滑动指示器 -->
+      <view class="tab-indicator {{filter}}"></view>
+    </view>
   </view>
 
   <!-- 告警列表 -->
   <view class="alert-list">
-    <alert-item
-      wx:for="{{alerts}}"
-      wx:key="id"
-      alert="{{item}}"
-      levelMap="{{levelMap}}"
-      bind:resolve="handleResolve"
-    />
+    <view class="alert-item spring-press stagger-item {{item.alert_level}} {{item.resolved ? 'is-resolved' : ''}}" wx:for="{{alerts}}" wx:key="id" style="animation-delay: {{index * 0.08}}s">
+      <!-- 左边框颜色指示 -->
+      <view class="alert-left-bar {{item.alert_level}}"></view>
+
+      <view class="alert-top">
+        <view class="alert-level level-{{item.alert_level}}">{{levelMap[item.alert_level] || item.alert_level}}</view>
+        <text class="alert-device">{{item.device_name || '未知设备'}}</text>
+        <view class="alert-status {{item.resolved ? 'resolved' : 'active'}}">
+          {{item.resolved ? '已解决' : '活跃'}}
+        </view>
+      </view>
+      <view class="alert-msg">{{item.message}}</view>
+      <view class="alert-bottom">
+        <text class="alert-time">{{item.created_at}}</text>
+        <text class="alert-resolve spring-press" wx:if="{{!item.resolved}}" bindtap="handleResolveTap" data-id="{{item.id}}">标记已解决</text>
+      </view>
+    </view>
   </view>
 
   <view class="empty-state" wx:if="{{alerts.length === 0}}">
@@ -35,7 +51,7 @@
     <text class="empty-sub">一切运行正常</text>
   </view>
 
-  <view class="load-more tap-scale" wx:if="{{hasMore}}" bindtap="loadMore">
+  <view class="load-more spring-press" wx:if="{{hasMore}}" bindtap="loadMore">
     <text>加载更多告警</text>
   </view>
 </view>

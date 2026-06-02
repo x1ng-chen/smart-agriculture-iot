@@ -1,4 +1,7 @@
-<view class="monitor">
+<view class="monitor page-enter">
+  <view class="ambient-bg"></view>
+
+  <!-- 连接状态栏 -->
   <view class="monitor-toolbar">
     <view class="status-ring {{connected ? 'connected' : 'disconnected'}}">
       <view class="status-ring-inner"></view>
@@ -7,13 +10,80 @@
     <text class="status-interval">· 每 5s 刷新</text>
     <view class="status-wave" wx:if="{{connected}}">
       <view class="wave-bar"></view><view class="wave-bar"></view><view class="wave-bar"></view>
+      <view class="wave-bar"></view><view class="wave-bar"></view>
     </view>
   </view>
 
+  <!-- 设备网格 -->
   <view class="device-grid">
-    <device-card wx:for="{{devices}}" wx:key="device_id" device="{{item}}" />
+    <view class="device-card-wrapper stagger-item" wx:for="{{devices}}" wx:key="device_id" style="animation-delay: {{index * 0.09}}s">
+      <view class="device-card {{item.online_status !== 1 ? 'offline' : ''}} spring-press" bindtouchstart="onCardTouch" bindtouchend="onCardRelease">
+        <!-- 顶部色条 -->
+        <view class="card-top-bar {{item.online_status === 1 ? 'bar-online' : 'bar-offline'}}"></view>
+
+        <!-- 卡片头 -->
+        <view class="card-header">
+          <view class="card-header-left">
+            <view class="card-dot {{item.online_status === 1 ? 'dot-on' : 'dot-off'}}">
+              <view class="dot-pulse" wx:if="{{item.online_status === 1}}"></view>
+            </view>
+            <text class="card-name">{{item.device_name || '未知设备'}}</text>
+          </view>
+          <text class="card-sn">{{item.device_sn}}</text>
+        </view>
+
+        <!-- 传感器网格 -->
+        <view class="card-sensors">
+          <view class="sensor-cell">
+            <view class="sensor-icon-text">💧</view>
+            <view class="sensor-label">土壤湿度</view>
+            <view class="sensor-value">{{item.soil_moisture != null ? item.soil_moisture + '%' : '--'}}</view>
+            <view class="sensor-bar">
+              <view class="sensor-bar-fill" style="width: {{item.soil_moisture || 0}}%"></view>
+            </view>
+          </view>
+          <view class="sensor-cell">
+            <view class="sensor-icon-text">🌡️</view>
+            <view class="sensor-label">土壤温度</view>
+            <view class="sensor-value">{{item.soil_temp != null ? item.soil_temp + '°C' : '--'}}</view>
+          </view>
+          <view class="sensor-cell">
+            <view class="sensor-icon-text">🌤️</view>
+            <view class="sensor-label">空气温度</view>
+            <view class="sensor-value">{{item.air_temp != null ? item.air_temp + '°C' : '--'}}</view>
+          </view>
+          <view class="sensor-cell">
+            <view class="sensor-icon-text">💨</view>
+            <view class="sensor-label">空气湿度</view>
+            <view class="sensor-value">{{item.air_humidity != null ? item.air_humidity + '%' : '--'}}</view>
+            <view class="sensor-bar">
+              <view class="sensor-bar-fill" style="width: {{item.air_humidity || 0}}%"></view>
+            </view>
+          </view>
+          <view class="sensor-cell">
+            <view class="sensor-icon-text">☀️</view>
+            <view class="sensor-label">光照强度</view>
+            <view class="sensor-value">{{item.light != null ? item.light + ' lux' : '--'}}</view>
+          </view>
+          <view class="sensor-cell">
+            <view class="sensor-icon-text">🕐</view>
+            <view class="sensor-label">更新时间</view>
+            <view class="sensor-value sensor-value-sm">{{item.updated_at || item.last_seen || '--'}}</view>
+          </view>
+        </view>
+
+        <!-- 灌溉按钮 -->
+        <view class="card-footer" wx:if="{{item.online_status === 1}}">
+          <view class="irrigate-btn ripple-container spring-press" bindtap="onNavigateControl" data-id="{{item.device_id}}">
+            <text class="btn-icon">💧</text>
+            <text>控制灌溉</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 
+  <!-- 空状态 -->
   <view class="empty-state" wx:if="{{devices.length === 0}}">
     <text class="empty-icon">📡</text>
     <text class="empty-text">暂无设备数据</text>

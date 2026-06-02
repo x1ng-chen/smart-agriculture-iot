@@ -18,13 +18,8 @@ Page({
     this.startPolling()
   },
 
-  onHide() {
-    this.stopPolling()
-  },
-
-  onUnload() {
-    this.stopPolling()
-  },
+  onHide() { this.stopPolling() },
+  onUnload() { this.stopPolling() },
 
   onPullDownRefresh() {
     this.loadData().finally(() => wx.stopPullDownRefresh())
@@ -46,9 +41,14 @@ Page({
   },
 
   stopPolling() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
-    }
+    if (this.timer) { clearInterval(this.timer); this.timer = null }
+  },
+
+  onCardTouch() {},
+  onCardRelease() {},
+
+  onNavigateControl(e) {
+    const deviceId = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/control/control?deviceId=' + deviceId })
   }
 })
