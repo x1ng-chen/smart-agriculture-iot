@@ -1,49 +1,113 @@
-﻿// Strategy Engine — 统一灌溉策略检查（供 MQTT 和华为云回调复用）
-
 import { query } from "./db.js";
+import {
+  checkRunningIrrigation, checkRecentIrrigation,
+  createIrrigationLog, createAlert
+} from "./influxdb.js";
+import { checkAiCooldown } from "./redis.js";
+import config from "./config.js";
 
-/**
- * 检查传感器数据是否触发灌溉策略，并自动执行
- * @param {number} deviceId
- * @param {number} plotId
- * @param {string} deviceSn
- * @param {object} payload - { soil_moisture, soil_temp, air_temp, air_humidity, light }
- * @returns {Promise<Array<{strategy_id:number, strategy_name:string, duration_sec:number}>>} 触发的策略日志
- */
 export async function runStrategies(deviceId, plotId, deviceSn, payload) {
   const strategies = await query(
-    "SELECT * FROM irrigation_strategies WHERE plot_id = ? AND enabled = 1 AND humidity_min <= ? AND humidity_max >= ?",
-    [plotId, payload.soil_moisture, payload.soil_moisture]
+    "SELECT * FROM irrigation_strategies WHERE plot_id = ? AND enabled = 1",
+    [plotId]
   );
+
+  const aiStrategies = strategies.filter(s => s.decision_mode === 'ai');
+  const ruleStrategies = strategies.filter(s => s.decision_mode !== 'ai');
 
   const results = [];
 
-  for (const s of strategies) {
-    // 检查是否有正在执行中的同策略灌水
-    const running = await query(
-      "SELECT id FROM irrigation_logs WHERE device_id = ? AND strategy_id = ? AND status = 'running' LIMIT 1",
-      [deviceId, s.id]
-    );
-    if (running.length > 0) continue;
+  // AI 模式策略
+  if (aiStrategies.length > 0) {
+    // AI 调用冷却：每 N 秒最多触发一次（默认 300s），节省 LLM 费用
+    const canCallAi = await checkAiCooldown(deviceId, config.ai.decisionCooldown);
+    if (canCallAi) {
+      try {
+        const ai = await import('./ai/ai-decision-engine.js');
+        const decision = await ai.generateDecision(deviceId);
 
-    // 冷却间隔检查
+        if (decision.should_irrigate && decision.duration_sec > 0) {
+          for (const s of aiStrategies) {
+            const running = await checkRunningIrrigation(deviceId);
+            if (running) continue;
+
+            if (s.cooldown_interval) {
+              const inCooldown = await checkRecentIrrigation(deviceId, s.id, s.cooldown_interval);
+              if (inCooldown) continue;
+            }
+
+            const actualDuration = Math.min(decision.duration_sec, s.irrigation_duration_max);
+
+            const devRows = await query("SELECT device_name FROM devices WHERE id = ?", [deviceId]);
+            const deviceName = devRows[0]?.device_name || '';
+
+            await createIrrigationLog({
+              device_id: deviceId,
+              strategy_id: s.id,
+              trigger_type: 'auto',
+              device_sn: deviceSn,
+              device_name: deviceName,
+              strategy_name: s.strategy_name,
+              remark: `AI 决策: ${decision.reasoning}`
+            });
+
+            await createAlert({
+              device_id: deviceId,
+              alert_type: 'irrigation_started',
+              alert_level: 'info',
+              message: `AI 自动灌溉已启动 (策略: ${s.strategy_name}, 置信度: ${(decision.confidence * 100).toFixed(0)}%)`,
+              device_sn: deviceSn,
+              device_name: deviceName
+            });
+
+            console.log(`[strategy] AI irrigation: device=${deviceSn} strategy=${s.strategy_name} duration=${actualDuration}s`);
+
+            results.push({
+              strategy_id: s.id,
+              strategy_name: s.strategy_name,
+              duration_sec: actualDuration,
+            });
+          }
+        }
+      } catch (e) {
+        console.error('[strategy] AI decision error:', e.message);
+      }
+    }
+  }
+
+  // 规则模式策略
+  for (const s of ruleStrategies) {
+    // 仅在土壤湿度过低时触发灌溉；湿度过高由告警引擎处理
+    if (payload.soil_moisture >= s.humidity_min) continue;
+
+    const running = await checkRunningIrrigation(deviceId);
+    if (running) continue;
+
     if (s.cooldown_interval) {
-      const cooldownOk = await query(
-        "SELECT id FROM irrigation_logs WHERE device_id = ? AND strategy_id = ? AND start_time > DATE_SUB(NOW(), INTERVAL ? SECOND) LIMIT 1",
-        [deviceId, s.id, s.cooldown_interval]
-      );
-      if (cooldownOk.length > 0) continue;
+      const inCooldown = await checkRecentIrrigation(deviceId, s.id, s.cooldown_interval);
+      if (inCooldown) continue;
     }
 
-    await query(
-      "INSERT INTO irrigation_logs (device_id, strategy_id, trigger_type, start_time, status) VALUES (?, ?, 'auto', NOW(), 'running')",
-      [deviceId, s.id]
-    );
+    const devRows = await query("SELECT device_name FROM devices WHERE id = ?", [deviceId]);
+    const deviceName = devRows[0]?.device_name || '';
 
-    await query(
-      "INSERT INTO alerts (device_id, alert_type, severity, message, resolved) VALUES (?, 'irrigation_started', 0, ?, 0)",
-      [deviceId, "自动灌溉已启动 (策略: " + s.strategy_name + ")"]
-    );
+    await createIrrigationLog({
+      device_id: deviceId,
+      strategy_id: s.id,
+      trigger_type: 'auto',
+      device_sn: deviceSn,
+      device_name: deviceName,
+      strategy_name: s.strategy_name
+    });
+
+    await createAlert({
+      device_id: deviceId,
+      alert_type: 'irrigation_started',
+      alert_level: 'info',
+      message: "自动灌溉已启动 (策略: " + s.strategy_name + ")",
+      device_sn: deviceSn,
+      device_name: deviceName
+    });
 
     console.log("[strategy] irrigation: device=" + deviceSn + " strategy=" + s.strategy_name);
 

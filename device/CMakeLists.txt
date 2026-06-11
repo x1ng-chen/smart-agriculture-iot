@@ -18,9 +18,11 @@ set(SOURCES
     src/drivers/bh1750.c
     src/drivers/relay.c
     src/drivers/oled.c
+    src/drivers/e53_is1.c       # Node B 安防驱动 (条件编译)
     src/app/sensor_task.c
     src/app/heartbeat.c
     src/app/cmd_handler.c
+    src/app/security_task.c     # Node B 安防任务 (条件编译)
 )
 
 # WiFi+MQTT 模式额外源文件 (由 config.h 中的 CONNECTION_MODE 控制编译)

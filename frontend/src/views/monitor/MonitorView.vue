@@ -4,7 +4,7 @@
       <span class="monitor-title">设备实时数据</span>
       <div class="monitor-actions">
         <span class="pulse-dot" :class="mqttStore.connected ? 'connected' : 'disconnected'"></span>
-        <span class="mqtt-status">{{ mqttStore.connected ? 'MQTT 已连接' : 'MQTT 未连接' }}</span>
+        <span class="mqtt-status">{{ mqttStore.connected ? '实时已连接' : '实时未连接' }}</span>
         <el-button size="small" @click="toggleMqtt">{{ mqttStore.connected ? '断开' : '连接' }}</el-button>
         <el-tag size="small" effect="dark">更新间隔: 5s</el-tag>
       </div>
@@ -186,7 +186,7 @@ onMounted(async () => {
             air_temp: d.air_temp,
             air_humidity: d.air_humidity,
             light: d.light,
-            ts: d.created_at,
+            ts: d._time,
           }
         }
       } catch { /* ignore */ }

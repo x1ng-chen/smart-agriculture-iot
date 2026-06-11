@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { query } from '../db.js'
+import { queryFluxRaw } from '../influxdb.js'
 import { error } from '../utils/response.js'
 
 const router = Router()
@@ -9,22 +10,47 @@ router.get('/sensor-data', async (req, res) => {
   try {
     const { device_id, start, end } = req.query
 
-    let where = 'WHERE 1=1'
-    const params = []
-    if (device_id) { where += ' AND sd.device_id = ?'; params.push(device_id) }
-    if (start) { where += ' AND sd.created_at >= ?'; params.push(start) }
-    if (end) { where += ' AND sd.created_at <= ?'; params.push(end) }
+    let rangeStart = '-30d'
+    if (start) rangeStart = new Date(start).toISOString()
+    let rangeStop = 'now()'
+    if (end) rangeStop = new Date(end).toISOString()
 
-    const rows = await query(
-      `SELECT d.device_name, d.device_sn, sd.soil_moisture, sd.soil_temp,
-        sd.air_temp, sd.air_humidity, sd.light, sd.created_at
-       FROM sensor_data sd
-       LEFT JOIN devices d ON sd.device_id = d.id
-       ${where} ORDER BY sd.created_at DESC LIMIT 10000`,
-      params
+    let deviceFilter = ''
+    if (device_id) {
+      deviceFilter = ` and r.device_id == "${device_id}"`
+    }
+
+    const rows = await queryFluxRaw(
+      `from(bucket: "sensor_data")
+  |> range(start: ${rangeStart}, stop: ${rangeStop})
+  |> filter(fn: (r) => r._measurement == "sensor_data"${deviceFilter})
+  |> filter(fn: (r) => r._field == "soil_moisture" or r._field == "soil_temp" or r._field == "air_temp" or r._field == "air_humidity" or r._field == "light")
+  |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> sort(columns: ["_time"], desc: true)
+  |> limit(n: 10000)`
     )
 
-    const csv = toCsv(rows, ['设备名称', '序列号', '土壤湿度', '土壤温度', '空气温度', '空气湿度', '光照强度', '时间'],
+    // 获取设备名称映射
+    const devices = await query('SELECT id, device_sn, device_name FROM devices')
+    const deviceMap = new Map()
+    for (const d of devices) {
+      deviceMap.set(d.id, d)
+    }
+
+    const csv = toCsv(rows.map(r => {
+      const dev = deviceMap.get(parseInt(r.device_id) || 0)
+      return {
+        device_name: dev?.device_name || '',
+        device_sn: r.device_sn || dev?.device_sn || '',
+        soil_moisture: r.soil_moisture,
+        soil_temp: r.soil_temp,
+        air_temp: r.air_temp,
+        air_humidity: r.air_humidity,
+        light: r.light,
+        created_at: r._time
+      }
+    }),
+      ['设备名称', '序列号', '土壤湿度', '土壤温度', '空气温度', '空气湿度', '光照强度', '时间'],
       ['device_name', 'device_sn', 'soil_moisture', 'soil_temp', 'air_temp', 'air_humidity', 'light', 'created_at'])
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
@@ -41,22 +67,38 @@ router.get('/irrigation-logs', async (req, res) => {
   try {
     const { device_id, start, end } = req.query
 
-    let where = 'WHERE 1=1'
-    const params = []
-    if (device_id) { where += ' AND l.device_id = ?'; params.push(device_id) }
-    if (start) { where += ' AND l.start_time >= ?'; params.push(start) }
-    if (end) { where += ' AND l.start_time <= ?'; params.push(end) }
+    let rangeStart = '-365d'
+    if (start) rangeStart = new Date(start).toISOString()
+    let rangeStop = 'now()'
+    if (end) rangeStop = new Date(end).toISOString()
 
-    const rows = await query(
-      `SELECT d.device_name, d.device_sn, l.trigger_type, l.start_time, l.end_time,
-        l.duration_sec, l.water_used_l, l.status, l.remark
-       FROM irrigation_logs l
-       LEFT JOIN devices d ON l.device_id = d.id
-       ${where} ORDER BY l.start_time DESC LIMIT 10000`,
-      params
+    let deviceFilter = ''
+    if (device_id) {
+      deviceFilter = ` and r.device_id == "${device_id}"`
+    }
+
+    const rows = await queryFluxRaw(
+      `from(bucket: "sensor_data")
+  |> range(start: ${rangeStart}, stop: ${rangeStop})
+  |> filter(fn: (r) => r._measurement == "irrigation_logs"${deviceFilter})
+  |> filter(fn: (r) => r._field == "trigger_type" or r._field == "duration_sec" or r._field == "water_used_l" or r._field == "status" or r._field == "remark" or r._field == "device_name" or r._field == "device_sn")
+  |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> sort(columns: ["_time"], desc: true)
+  |> limit(n: 10000)`
     )
 
-    const csv = toCsv(rows, ['设备名称', '序列号', '触发方式', '开始时间', '结束时间', '持续(秒)', '用水(L)', '状态', '备注'],
+    const csv = toCsv(rows.map(r => ({
+      device_name: r.device_name || '',
+      device_sn: r.device_sn || '',
+      trigger_type: r.trigger_type || '',
+      start_time: r._time,
+      end_time: r.end_time || '',
+      duration_sec: r.duration_sec,
+      water_used_l: r.water_used_l,
+      status: r.status || '',
+      remark: r.remark || ''
+    })),
+      ['设备名称', '序列号', '触发方式', '开始时间', '结束时间', '持续(秒)', '用水(L)', '状态', '备注'],
       ['device_name', 'device_sn', 'trigger_type', 'start_time', 'end_time', 'duration_sec', 'water_used_l', 'status', 'remark'])
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')

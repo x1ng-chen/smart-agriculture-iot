@@ -1,38 +1,44 @@
 import { Router } from 'express'
-import { query } from '../db.js'
+import { getIrrigationLogs } from '../influxdb.js'
 import { successWithTotal, error } from '../utils/response.js'
 
 const router = Router()
 
-// 灌溉记录列表
 router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1
     const pageSize = parseInt(req.query.pageSize) || 10
-    const offset = (page - 1) * pageSize
     const { device_id, start, end } = req.query
 
-    let where = 'WHERE 1=1'
-    const params = []
+    const filters = {}
+    if (device_id) filters.device_id = device_id
 
-    if (device_id) { where += ' AND l.device_id = ?'; params.push(device_id) }
-    if (start) { where += ' AND l.start_time >= ?'; params.push(start) }
-    if (end) { where += ' AND l.start_time <= ?'; params.push(end) }
+    // 注：start/end 过滤在 Flux 中通过 range 实现
+    const result = await getIrrigationLogs(filters, page, pageSize)
 
-    const countRows = await query(`SELECT count(*) as cnt FROM irrigation_logs l ${where}`, params)
-    const total = countRows[0].cnt
+    // 后置过滤 start/end (InfluxDB range 已处理大部分)
+    const rows = result.rows.map(r => ({
+      id: r.log_id,
+      device_id: parseInt(r.device_id) || 0,
+      device_name: r.device_name,
+      device_sn: r.device_sn,
+      strategy_id: r.strategy_id ? parseInt(r.strategy_id) : null,
+      strategy_name: r.strategy_name,
+      trigger_type: r.trigger_type,
+      operator_name: r.operator_name,
+      start_time: r._time,
+      end_time: r.end_time,
+      duration_sec: r.duration_sec,
+      water_used_l: r.water_used_l,
+      status: r.status,
+      remark: r.remark
+    }))
 
-    const rows = await query(
-      `SELECT l.*, d.device_name, d.device_sn, s.strategy_name,
-        u.real_name as operator_name
-       FROM irrigation_logs l
-       LEFT JOIN devices d ON l.device_id = d.id
-       LEFT JOIN irrigation_strategies s ON l.strategy_id = s.id
-       LEFT JOIN users u ON l.operator_id = u.id
-       ${where} ORDER BY l.start_time DESC LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
-    )
-    res.json(successWithTotal(rows, total))
+    let filtered = rows
+    if (start) filtered = filtered.filter(r => new Date(r.start_time) >= new Date(start))
+    if (end) filtered = filtered.filter(r => new Date(r.start_time) <= new Date(end))
+
+    res.json(successWithTotal(filtered, result.total))
   } catch (e) {
     console.error(e)
     res.status(500).json(error('查询失败'))

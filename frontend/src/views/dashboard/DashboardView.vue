@@ -61,6 +61,19 @@
       </div>
     </div>
 
+    <!-- Charts Row 3 -->
+    <div class="chart-row chart-row-single">
+      <div class="chart-panel chart-panel-full">
+        <div class="panel-header">
+          <span class="panel-title">光照强度趋势</span>
+          <span class="panel-badge">近24小时</span>
+        </div>
+        <div class="chart-body">
+          <v-chart :option="lightChartOption" autoresize />
+        </div>
+      </div>
+    </div>
+
     <!-- Bottom Row -->
     <div class="bottom-row">
       <div class="chart-panel chart-panel-wide">
@@ -172,6 +185,15 @@ const airHumidityChartOption = ref({
   series: []
 })
 
+const lightChartOption = ref({
+  tooltip: { trigger: 'axis' },
+  legend: { show: true, top: 0, textStyle: { color: '#94a3b8' } },
+  grid: { top: 40, right: 20, bottom: 30, left: 50 },
+  xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8', fontSize: 11 } },
+  yAxis: { type: 'value', name: 'Lux', nameTextStyle: { color: '#94a3b8' }, axisLine: { show: false }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
+  series: []
+})
+
 function formatTime(t) { return dayjs(t).format('MM-DD HH:mm') }
 function formatRelative(t) {
   const diff = dayjs().diff(dayjs(t), 'minute')
@@ -199,33 +221,40 @@ async function loadChartData() {
     const soilTempSeries = []
     const airTempSeries = []
     const airHumiditySeries = []
+    const lightSeries = []
 
     for (let i = 0; i < results.length; i++) {
       const rows = results[i]?.data || []
       const name = onlineDevs[i].device_name
       if (rows.length > 0 && timeLabels.length === 0) {
-        timeLabels.push(...rows.map(r => dayjs(r.created_at).format('HH:mm')).reverse())
+        timeLabels.push(...rows.map(r => dayjs(r._time).format('HH:mm')))
       }
       moistureSeries.push({
         name, type: 'line', smooth: true, symbol: 'none',
-        data: rows.map(r => r.soil_moisture).reverse(),
+        data: rows.map(r => r.soil_moisture),
         lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
         areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
       })
       soilTempSeries.push({
         name, type: 'line', smooth: true, symbol: 'none',
-        data: rows.map(r => r.soil_temp).reverse(),
+        data: rows.map(r => r.soil_temp),
         lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
         areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
       })
       airTempSeries.push({
         name, type: 'line', smooth: true, symbol: 'none',
-        data: rows.map(r => r.air_temp).reverse(),
+        data: rows.map(r => r.air_temp),
         lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
       })
       airHumiditySeries.push({
         name, type: 'line', smooth: true, symbol: 'none',
-        data: rows.map(r => r.air_humidity).reverse(),
+        data: rows.map(r => r.air_humidity),
+        lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
+        areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
+      })
+      lightSeries.push({
+        name, type: 'line', smooth: true, symbol: 'none',
+        data: rows.map(r => r.light),
         lineStyle: { color: colors[i], width: 2 }, itemStyle: { color: colors[i] },
         areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors[i] + '40' }, { offset: 1, color: colors[i] + '05' }] } }
       })
@@ -250,6 +279,11 @@ async function loadChartData() {
       ...airHumidityChartOption.value,
       xAxis: { ...airHumidityChartOption.value.xAxis, data: timeLabels },
       series: airHumiditySeries,
+    }
+    lightChartOption.value = {
+      ...lightChartOption.value,
+      xAxis: { ...lightChartOption.value.xAxis, data: timeLabels },
+      series: lightSeries,
     }
   } catch (e) { /* ignore */ }
 }
@@ -370,6 +404,12 @@ watch(() => mqttStore.latestData, () => {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin-bottom: 20px;
+}
+.chart-row-single {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .chart-panel {
   background: rgba(16, 30, 60, 0.6);

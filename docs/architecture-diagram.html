@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧农业灌溉系统 - 完整系统架构图</title>
+<style>
+  :root {
+    --layer-hardware: #0D9488;
+    --layer-comm: #2563EB;
+    --layer-cloud: #7C3AED;
+    --layer-tunnel: #EA580C;
+    --layer-backend: #16A34A;
+    --layer-data: #0891B2;
+    --layer-frontend: #DB2777;
+    --bg: #F0F4F8;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-secondary: #64748B;
+    --border: #E2E8F0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 20px;
+    min-width: 1400px;
+  }
+
+  .container {
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+  .header .tech-line {
+    font-size: 12px;
+    color: #94A3B8;
+    margin-top: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+
+  /* Architecture Grid */
+  .arch-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  /* Layer section */
+  .layer {
+    display: flex;
+    align-items: stretch;
+    min-height: 120px;
+    position: relative;
+  }
+
+  .layer-label {
+    width: 170px;
+    min-width: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
+  }
+  .layer-label .en {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.8;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+  .layer-label .icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  .layer-content {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    align-items: stretch;
+    position: relative;
+  }
+
+  /* Color themes per layer */
+  .layer.hardware .layer-label { background: linear-gradient(135deg, #0F766E, #0D9488); }
+  .layer.hardware .layer-content { border-left: 4px solid #0D9488; background: #F0FDFA; }
+
+  .layer.comm .layer-label { background: linear-gradient(135deg, #1D4ED8, #2563EB); }
+  .layer.comm .layer-content { border-left: 4px solid #2563EB; background: #EFF6FF; }
+
+  .layer.cloud .layer-label { background: linear-gradient(135deg, #6D28D9, #7C3AED); }
+  .layer.cloud .layer-content { border-left: 4px solid #7C3AED; background: #FAF5FF; }
+
+  .layer.tunnel .layer-label { background: linear-gradient(135deg, #C2410C, #EA580C); }
+  .layer.tunnel .layer-content { border-left: 4px solid #EA580C; background: #FFF7ED; }
+
+  .layer.backend .layer-label { background: linear-gradient(135deg, #15803D, #16A34A); }
+  .layer.backend .layer-content { border-left: 4px solid #16A34A; background: #F0FDF4; }
+
+  .layer.data .layer-label { background: linear-gradient(135deg, #0E7490, #0891B2); }
+  .layer.data .layer-content { border-left: 4px solid #0891B2; background: #ECFEFF; }
+
+  .layer.frontend .layer-label { background: linear-gradient(135deg, #BE185D, #DB2777); }
+  .layer.frontend .layer-content { border-left: 4px solid #DB2777; background: #FFF1F2; }
+
+  /* Arrows between layers */
+  .layer-arrow {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .layer-arrow .line {
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, #94A3B8, #CBD5E1);
+    border-radius: 2px;
+  }
+  .layer-arrow .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #94A3B8;
+    position: absolute;
+    bottom: -2px;
+  }
+  .layer-arrow .flow-label {
+    position: absolute;
+    right: 240px;
+    font-size: 10px;
+    color: #94A3B8;
+    font-family: 'Consolas', monospace;
+    white-space: nowrap;
+  }
+
+  /* Cards inside layers */
+  .card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+  }
+  .card .card-icon {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .card .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  .card .card-desc {
+    font-size: 11px;
+    color: #64748B;
+    line-height: 1.55;
+  }
+  .card .card-desc .highlight {
+    color: #0F172A;
+    font-weight: 600;
+  }
+  .card .card-tech {
+    font-size: 10px;
+    font-family: 'Consolas', monospace;
+    color: #94A3B8;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #E2E8F0;
+  }
+
+  /* Wide card (spans more) */
+  .card.wide {
+    flex: 2;
+    min-width: 300px;
+    max-width: 500px;
+  }
+
+  /* Data flow line on the side */
+  .dataflow-sidebar {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+    width: 200px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .dataflow-sidebar .df-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: #0D9488;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .dataflow-sidebar .df-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .dataflow-sidebar .df-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dataflow-sidebar .df-latency {
+    text-align: center;
+    font-weight: 700;
+    color: #0D9488;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #E2E8F0;
+    font-size: 12px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    padding: 16px 24px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748B;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    body { min-width: auto; }
+    .layer { flex-direction: column; }
+    .layer-label { width: 100%; min-width: auto; flex-direction: row; gap: 8px; padding: 10px 16px; }
+    .card { min-width: 130px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; padding: 10px; }
+    .dataflow-sidebar { position: static; transform: none; margin-top: 20px; width: auto; }
+    .layer-content { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🌾 智慧农业灌溉系统 · 完整架构图</h1>
+    <div class="subtitle">Smart Agriculture Irrigation System — End-to-End Architecture</div>
+    <div class="tech-line">BearPi-HM Nano · 华为云 IoTDA · Node.js · Vue 3 · MySQL · InfluxDB · Redis · Docker · FRP · MiMo AI</div>
+  </div>
+
+  <!-- Architecture Layers -->
+  <div class="arch-grid">
+
+    <!-- Layer 7: Frontend -->
+    <div class="layer frontend">
+      <div class="layer-label">
+        <div class="icon">🖥️</div>
+        展示层
+        <div class="en">Presentation</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">🌐 Vue 3 SPA :3000</div>
+          <div class="card-desc">
+            <span class="highlight">Vite 5</span> 开发服务器<br>
+            Composition API · Pinia 状态管理<br>
+            Vue Router 4 路由守卫 · JWT 拦截
+          </div>
+          <div class="card-tech">Vue 3 · Vite 5 · Pinia · Vue Router</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎨 Element Plus UI</div>
+          <div class="card-desc">
+            <span class="highlight">企业级 B 端</span>组件库<br>
+            El-Table · El-Card · El-Dialog<br>
+            骨架屏 · Toast · 响应式布局
+          </div>
+          <div class="card-tech">Element Plus 2.7 · Sass</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 ECharts 可视化</div>
+          <div class="card-desc">
+            <span class="highlight">24h 趋势折线图</span><br>
+            传感器数据动态刷新<br>
+            仪表盘统计卡片 · 实时监控
+          </div>
+          <div class="card-tech">ECharts 5 · vue-echarts</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔌 Socket.io 实时</div>
+          <div class="card-desc">
+            <span class="highlight">ws://localhost:8080/ws</span><br>
+            subscribe:device(sn) 房间<br>
+            on(sensor:data) → latestData[sn]<br>
+            毫秒级 DOM 刷新
+          </div>
+          <div class="card-tech">Socket.io Client · WebSocket</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🤖 AI 助手对话</div>
+          <div class="card-desc">
+            POST /api/v1/ai/chat<br>
+            <span class="highlight">MiMo AI</span> 智能问答<br>
+            灌溉建议 · 故障诊断<br>
+            Markdown 渲染回复
+          </div>
+          <div class="card-tech">MiMo v2.5-pro · OpenAI 兼容</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="layer-arrow">
+      <div class="line"></div><div class="arrow-head"></div>
+      <span class="flow-label">HTTP REST · WebSocket · Server-Sent Events</span>
+    </div>
+
+    <!-- Layer 6: Backend -->
+    <div class="layer backend">
+      <div class="layer-label">
+        <div class="icon">⚙️</div>
+        后端服务层
+        <div class="en">Backend Service</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">🚀 Express Server :8080</div>
+          <div class="card-desc">
+            <span class="highlight">Node.js 22</span> · HTTP + WS<br>
+            CORS · morgan · express.json()<br>
+            统一错误处理 · 404/500 拦截
+          </div>
+          <div class="card-tech">Express 4 · http.Server</div>
+        </div>
+        <div class="card wide">
+          <div class="card-title">📡 API 路由层 (11 模块)</div>
+          <div class="card-desc">
+            <span class="highlight">/api/v1/</span>auth · devices · dashboard · plots · strategies ·<br>
+            irrigation-logs · alerts · schedules · export · huawei · ai
+          </div>
+          <div class="card-tech">JWT 认证中间件 · bcrypt 加密 · 限流中间件</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔗 Socket.io Server</div>
+          <div class="card-desc">
+            <span class="highlight">端口复用 8080/ws</span><br>
+            4 类事件广播:<br>
+            sensor:data · sensor:fault<br>
+            alert:new · irrigation:status
+          </div>
+          <div class="card-tech">Socket.io 4 · EventEmitter</div>
+        </div>
+        <div class="card wide">
+          <div class="card-title">🧠 业务引擎 (4 Engine)</div>
+          <div class="card-desc">
+            <span class="highlight">alert-engine</span> 阈值告警+30min冷却 · <span class="highlight">strategy-engine</span> 自动灌溉触发<br>
+            <span class="highlight">ai-decision-engine</span> MiMo AI 决策 · <span class="highlight">anomaly-detector</span> Z-Score 异常检测
+          </div>
+          <div class="card-tech">huawei-iot.js · serial-gateway.js · feature-extractor.js</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔐 JWT 安全认证</div>
+          <div class="card-desc">
+            jsonwebtoken.sign({userId}, secret)<br>
+            24h 过期 · bcrypt 密码哈希<br>
+            <span class="highlight">authMiddleware</span> 路由保护
+          </div>
+          <div class="card-tech">jsonwebtoken · bcryptjs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="layer-arrow">
+      <div class="line"></div><div class="arrow-head"></div>
+      <span class="flow-label">mysql2 · @influxdata/influxdb-client · ioredis</span>
+    </div>
+
+    <!-- Layer 5: Data Storage -->
+    <div class="layer data">
+      <div class="layer-label">
+        <div class="icon">💾</div>
+        数据存储层
+        <div class="en">Data Storage</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">🐬 MySQL 8.0 :3306</div>
+          <div class="card-desc">
+            <span class="highlight">8 张业务表</span> InnoDB<br>
+            users · devices · plots<br>
+            sensor_data · irrigation_logs<br>
+            strategies · alerts · schedules
+          </div>
+          <div class="card-tech">mysql2 · 连接池 · FK 索引优化</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⏱️ InfluxDB 2.x :8086</div>
+          <div class="card-desc">
+            <span class="highlight">4 个 Measurement</span><br>
+            sensor_data · irrigation_logs<br>
+            alerts · ai_anomalies<br>
+            5 float 字段 · 30s 写入周期
+          </div>
+          <div class="card-tech">Bucket: smart_ag_iot · 自动过期</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Redis 7 :6379</div>
+          <div class="card-desc">
+            <span class="highlight">Docker Alpine</span> AOF 持久化<br>
+            去重: SHA256 SET NX EX 300<br>
+            限流: INCR + TTL 滑动窗口<br>
+            Dashboard 数据缓存 1min
+          </div>
+          <div class="card-tech">ioredis · 限流中间件</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔄 数据双写策略</div>
+          <div class="card-desc">
+            <span class="highlight">每条传感器数据写入两次:</span><br>
+            ① Webhook → INSERT MySQL + InfluxDB<br>
+            ② MQTT publish 触发 → 二次 INSERT<br>
+            互为冗余备份
+          </div>
+          <div class="card-tech">cleanPayload 清洗 · 故障码拦截</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="layer-arrow">
+      <div class="line"></div><div class="arrow-head"></div>
+      <span class="flow-label">HTTP POST Webhook · FRP TCP Proxy</span>
+    </div>
+
+    <!-- Layer 4: FRP Tunnel -->
+    <div class="layer tunnel">
+      <div class="layer-label">
+        <div class="icon">🔗</div>
+        网络穿透层
+        <div class="en">FRP Tunnel</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">☁️ 阿里云 ECS frps</div>
+          <div class="card-desc">
+            <span class="highlight">47.96.100.108</span><br>
+            :9090 控制端口<br>
+            :8080 → :3000 (前端)<br>
+            :8081 → :8080 (后端/Webhook)
+          </div>
+          <div class="card-tech">frps 0.61.1 · systemd 服务</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🐧 WSL Ubuntu frpc</div>
+          <div class="card-desc">
+            <span class="highlight">localIP: 192.168.32.1</span><br>
+            连接 frps Token 认证<br>
+            透明 TCP 转发<br>
+            无公网 IP 需求
+          </div>
+          <div class="card-tech">frpc 0.61.1 · WSL 2 Ubuntu 24.04</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🛡️ 安全组策略</div>
+          <div class="card-desc">
+            阿里云安全组放行:<br>
+            <span class="highlight">7000</span> (frp 控制)<br>
+            <span class="highlight">8080</span> (前端代理)<br>
+            <span class="highlight">8081</span> (后端/Webhook)
+          </div>
+          <div class="card-tech">Token 认证 · IP 白名单</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="layer-arrow">
+      <div class="line"></div><div class="arrow-head"></div>
+      <span class="flow-label">MQTT QoS1 · HTTP Webhook · REST API Command</span>
+    </div>
+
+    <!-- Layer 3: Huawei Cloud -->
+    <div class="layer cloud">
+      <div class="layer-label">
+        <div class="icon">☁️</div>
+        云平台层
+        <div class="en">Huawei Cloud</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">📡 IoTDA 设备接入</div>
+          <div class="card-desc">
+            <span class="highlight">cn-north-4 区域</span><br>
+            MQTT Broker: 117.78.5.125:1883<br>
+            产品: SmartAgriculture<br>
+            服务: SetConfig
+          </div>
+          <div class="card-tech">oc_mqtt v5 Profile · HMAC-SHA256</div>
+        </div>
+        <div class="card">
+          <div class="card-title">👤 设备影子 & 管理</div>
+          <div class="card-desc">
+            2 台 BearPi 在线注册:<br>
+            <span class="highlight">smart-001</span> (BPN-20240001)<br>
+            <span class="highlight">smart-002</span> (BPN-20240002)<br>
+            设备影子实时同步状态
+          </div>
+          <div class="card-tech">设备密码认证 · MQTT 接入</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📐 规则引擎</div>
+          <div class="card-desc">
+            <span class="highlight">数据转发规则:</span><br>
+            device.property → report<br>
+            → HTTP POST JSON<br>
+            → Webhook URL 回调
+          </div>
+          <div class="card-tech">notify_data.header + body.services[]</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📲 命令下发 REST API</div>
+          <div class="card-desc">
+            <span class="highlight">IAM Token</span> (20min 缓存)<br>
+            POST /v5/iot/{project}/devices/{id}/commands<br>
+            StartIrrigation · StopIrrigation · SetConfig
+          </div>
+          <div class="card-tech">iotda-app endpoint · FullAccess 策略</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="layer-arrow">
+      <div class="line"></div><div class="arrow-head"></div>
+      <span class="flow-label">WiFi 2.4GHz · MQTT QoS1 · 30s 周期上报</span>
+    </div>
+
+    <!-- Layer 2: Communication -->
+    <div class="layer comm">
+      <div class="layer-label">
+        <div class="icon">📶</div>
+        通信层
+        <div class="en">Communication</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">📻 WiFi 2.4GHz</div>
+          <div class="card-desc">
+            IEEE 802.11b/g/n<br>
+            SSID: <span class="highlight">iqoo11</span><br>
+            WPA2 加密<br>
+            DHCP 动态 IP
+          </div>
+          <div class="card-tech">Hi3861 仅支持 2.4GHz</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📨 MQTT QoS 1</div>
+          <div class="card-desc">
+            <span class="highlight">至少一次送达</span><br>
+            Topic: $oc/devices/{id}/sys/<br>
+            properties/report<br>
+            5 属性 JSON 上报
+          </div>
+          <div class="card-tech">paho_mqtt · Eclipse Paho</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔐 HMAC-SHA256 认证</div>
+          <div class="card-desc">
+            设备 ID + 设备密钥<br>
+            → HMAC-SHA256 签名<br>
+            <span class="highlight">设备密码认证</span>机制
+          </div>
+          <div class="card-tech">oc_mqtt_al · 华为云 SDK</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔌 UART 串口 (备用)</div>
+          <div class="card-desc">
+            CH340 USB-UART<br>
+            <span class="highlight">115200 baud 8N1</span><br>
+            命令下发备用通道<br>
+            调试日志输出
+          </div>
+          <div class="card-tech">SerialPort · COM3/4/6</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="layer-arrow">
+      <div class="line"></div><div class="arrow-head"></div>
+      <span class="flow-label">I2C · ADC · GPIO · PWM</span>
+    </div>
+
+    <!-- Layer 1: Hardware -->
+    <div class="layer hardware">
+      <div class="layer-label">
+        <div class="icon">🔧</div>
+        设备层
+        <div class="en">Hardware</div>
+      </div>
+      <div class="layer-content">
+        <div class="card">
+          <div class="card-title">🖥️ BearPi #1 (smart-001)</div>
+          <div class="card-desc">
+            <span class="highlight">Hi3861 RISC-V 160MHz</span><br>
+            DB ID: 22 · BPN-20240001<br>
+            COM3 · 固件: smart001_fix.bin<br>
+            E53_IA1 传感器扩展板
+          </div>
+          <div class="card-tech">Huawei LiteOS RTOS · 2MB Flash</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🌡️ 传感器模组</div>
+          <div class="card-desc">
+            <span class="highlight">SHT30</span> I2C 温湿度 (±0.3°C)<br>
+            <span class="highlight">BH1750</span> I2C 光照 (1-65535 lux)<br>
+            <span class="highlight">Soil ADC</span> Ch2 土壤湿度 (0-100%)
+          </div>
+          <div class="card-tech">GPIO_0=SDA · GPIO_1=SCL</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ BearPi #2 (smart-002)</div>
+          <div class="card-desc">
+            <span class="highlight">同上 + 水泵控制</span><br>
+            DB ID: 28 · BPN-20240002<br>
+            COM4/6 · 固件: smart002_fixed.bin<br>
+            GPIO_8 继电器控制 220V 水泵
+          </div>
+          <div class="card-tech">RELAY_ACTIVE_LOW=0 · 高电平ON</div>
+        </div>
+        <div class="card">
+          <div class="card-title">💾 Flash 配置存储</div>
+          <div class="card-desc">
+            <span class="highlight">USER_RESERVE 4KB</span><br>
+            0x1F0000 · "SAGC" Magic<br>
+            WiFi SSID/PWD · 华为云 ID/密钥<br>
+            云端 SetConfig 远程配网
+          </div>
+          <div class="card-tech">hi_flash_write 直写 · 372B struct</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🧵 固件: 3线程架构</div>
+          <div class="card-desc">
+            <span class="highlight">task_main</span> MQTT + 消息队列<br>
+            <span class="highlight">task_sensor</span> 30s 采集周期<br>
+            <span class="highlight">task_config</span> Flash 配网<br>
+            16槽消息队列解耦
+          </div>
+          <div class="card-tech">GN+Ninja · riscv32-gcc 7.3.0</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /arch-grid -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#0D9488"></div> 设备层</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2563EB"></div> 通信层</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div> 云平台层</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EA580C"></div> 网络穿透层</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#16A34A"></div> 后端服务层</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0891B2"></div> 数据存储层</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#DB2777"></div> 前端展示层</div>
+    <div class="legend-item">|</div>
+    <div class="legend-item">端到端延迟 <b style="color:#0D9488">&lt; 1s</b> (不含采集周期)</div>
+    <div class="legend-item">采集周期 <b style="color:#2563EB">30s</b></div>
+    <div class="legend-item">数据双写 <b style="color:#16A34A">MySQL + InfluxDB</b></div>
+  </div>
+
+  <!-- Data flow sidebar -->
+  <div class="dataflow-sidebar">
+    <div class="df-title">📊 全链路延迟</div>
+    <div class="df-step"><div class="df-dot" style="background:#0D9488"></div> 采集 30s</div>
+    <div class="df-step"><div class="df-dot" style="background:#2563EB"></div> MQTT &lt;100ms</div>
+    <div class="df-step"><div class="df-dot" style="background:#7C3AED"></div> IoTDA &lt;200ms</div>
+    <div class="df-step"><div class="df-dot" style="background:#EA580C"></div> FRP &lt;300ms</div>
+    <div class="df-step"><div class="df-dot" style="background:#16A34A"></div> 后端 &lt;50ms</div>
+    <div class="df-step"><div class="df-dot" style="background:#0891B2"></div> InfluxDB &lt;10ms</div>
+    <div class="df-step"><div class="df-dot" style="background:#DB2777"></div> Socket.io &lt;5ms</div>
+    <div class="df-step"><div class="df-dot" style="background:#DB2777"></div> DOM &lt;16ms</div>
+    <div class="df-latency">总计 &lt; 1s → 屏幕</div>
+  </div>
+
+</div>
+
+</body>
+</html>

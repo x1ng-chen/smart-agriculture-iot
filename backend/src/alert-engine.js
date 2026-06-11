@@ -1,16 +1,6 @@
-﻿// Alert Engine — 传感器数据入库后自动检查阈值并创建告警
-
 import { query } from "./db.js";
+import { checkRecentAlert, createAlert } from "./influxdb.js";
 
-/**
- * 检查最新一条 sensor_data 是否触发阈值告警
- * @param {number} deviceId
- * @param {number|null} plotId
- * @param {string} deviceSn
- * @param {object} properties - { soil_moisture, soil_temp, air_temp, air_humidity, light }
- * @param {object} options
- * @param {number} options.cooldownMinutes - 同一设备同一类型告警防抖（分钟），默认 30
- */
 export async function checkAlerts(deviceId, plotId, deviceSn, properties, options = {}) {
   const cooldownMinutes = options.cooldownMinutes ?? 30;
 
@@ -78,18 +68,22 @@ export async function checkAlerts(deviceId, plotId, deviceSn, properties, option
     });
   }
 
-  for (const check of checks) {
-    const recent = await query(
-      "SELECT id FROM alerts WHERE device_id = ? AND alert_type = ? AND resolved = 0 AND created_at > DATE_SUB(NOW(), INTERVAL ? MINUTE) LIMIT 1",
-      [deviceId, check.alert_type, cooldownMinutes]
-    );
+  // 查设备名
+  const devRows = await query("SELECT device_name FROM devices WHERE id = ?", [deviceId]);
+  const deviceName = devRows[0]?.device_name || '';
 
-    if (recent.length === 0) {
-      await query(
-        "INSERT INTO alerts (device_id, alert_type, alert_level, message, resolved) VALUES (?, ?, ?, ?, 0)",
-        [deviceId, check.alert_type, check.alert_level, check.message]
-      );
-      console.log("[alert] new: device=" + deviceSn + " type=" + check.alert_type + " \"" + check.message + "\"");
-    }
+  for (const check of checks) {
+    const recentlyAlerted = await checkRecentAlert(deviceId, check.alert_type, cooldownMinutes);
+    if (recentlyAlerted) continue;
+
+    await createAlert({
+      device_id: deviceId,
+      alert_type: check.alert_type,
+      alert_level: check.alert_level,
+      message: check.message,
+      device_sn: deviceSn,
+      device_name: deviceName
+    });
+    console.log("[alert] new: device=" + deviceSn + " type=" + check.alert_type + " \"" + check.message + "\"");
   }
 }

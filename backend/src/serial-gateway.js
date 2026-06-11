@@ -323,15 +323,9 @@ class SerialConnection {
 }
 
 export class SerialManager {
-  constructor(broker) {
+  constructor(broker = null) {
     this.broker = broker
     this.connections = new Map()
-    this.onCommandMessage = this.onCommandMessage.bind(this)
-    this.onConfigMessage = this.onConfigMessage.bind(this)
-    this.onEventResponse = this.onEventResponse.bind(this)
-    if (this.broker) {
-      this.broker.subscribe(TOPIC_EVENT_RESPONSE_WILD, this.onEventResponse)
-    }
   }
 
   async autoConnect() {
@@ -359,14 +353,12 @@ export class SerialManager {
       return { success: false, message: `端口 ${comPort} 打开失败` }
     }
     this.connections.set(comPort, conn)
-    this.subscribeDeviceTopics(comPort)
     return { success: true, message: `端口 ${comPort} 已连接` }
   }
 
   async closePort(comPort) {
     const conn = this.connections.get(comPort)
     if (!conn) return { success: false, message: `端口 ${comPort} 未连接` }
-    this.unsubscribeDeviceTopics(comPort)
     await conn.close()
     this.connections.delete(comPort)
 
@@ -403,67 +395,5 @@ export class SerialManager {
       if (conn.deviceSn === deviceSn) return { comPort, conn }
     }
     return null
-  }
-
-  subscribeDeviceTopics(comPort) {
-    if (!this.broker) return
-    const pumpTopic = TOPIC_CMD_PUMP('+')
-    const configTopic = TOPIC_CMD_CONFIG('+')
-    this.broker.subscribe(pumpTopic, this.onCommandMessage)
-    this.broker.subscribe(configTopic, this.onConfigMessage)
-  }
-
-  unsubscribeDeviceTopics(comPort) {
-    if (!this.broker) return
-    this.broker.unsubscribe(TOPIC_CMD_PUMP('+'), this.onCommandMessage)
-    this.broker.unsubscribe(TOPIC_CMD_CONFIG('+'), this.onConfigMessage)
-  }
-
-  onCommandMessage(packet, cb) {
-    const match = packet.topic.match(/^cmd\/([\w-]+)\/pump$/)
-    if (!match) return cb()
-    const sn = match[1]
-    const payload = JSON.parse(packet.payload.toString())
-    const action = payload.action || (payload.status === 1 ? 'pump_on' : 'pump_off')
-    const duration = payload.duration_sec || null
-    this.sendCommandBySn(sn, action, duration).then((result) => {
-      const found = this.findConnectionBySn(sn)
-      if (found) {
-        found.conn.mqttPublish(TOPIC_EVENT_RESPONSE(sn), {
-          type: 'cmd_ack', device_sn: sn, result: result.success ? 'ok' : 'fail', message: result.message
-        })
-      }
-    })
-    cb()
-  }
-
-  onConfigMessage(packet, cb) {
-    const match = packet.topic.match(/^cmd\/([\w-]+)\/config$/)
-    if (!match) return cb()
-    const sn = match[1]
-    const payload = JSON.parse(packet.payload.toString())
-    const found = this.findConnectionBySn(sn)
-    if (found) {
-      found.conn.write({ type: 'config', cmd_id: randomUUID(), params: payload })
-    }
-    cb()
-  }
-
-  onEventResponse(packet, cb) {
-    const match = packet.topic.match(/^event\/([\w-]+)\/response$/)
-    if (!match) return cb()
-    const sn = match[1]
-    try {
-      const payload = JSON.parse(packet.payload.toString())
-      if (payload.type === 'cmd_ack' && payload.cmd_id) {
-        const found = this.findConnectionBySn(sn)
-        if (found) {
-          found.conn.handleCmdAck(payload)
-        }
-      }
-    } catch {
-      // ignore parse errors
-    }
-    cb()
   }
 }

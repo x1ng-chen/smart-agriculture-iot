@@ -4,7 +4,8 @@
     "pages/dashboard/dashboard",
     "pages/monitor/monitor",
     "pages/control/control",
-    "pages/alerts/alerts"
+    "pages/alerts/alerts",
+    "pages/ai-chat/ai-chat"
   ],
   "window": {
     "navigationBarTitleText": "智慧农业灌溉",

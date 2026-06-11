@@ -9,20 +9,21 @@ import scheduleRoutes from './schedules.js'
 import exportRoutes from './export.js'
 import dashboardRoutes from './dashboard.js'
 import huaweiCallbackRoutes from './huawei-callback.js'
+import aiRoutes from './ai.js'
 import { authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
-// ÈÏÖ¤½Ó¿Ú (ÎÞÐèµÇÂ¼)
+// ï¿½ï¿½Ö¤ï¿½Ó¿ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½Â¼)
 router.use('/auth', authRoutes)
 
-// »ªÎªÔÆ IoT Êý¾Ý×ª·¢»Øµ÷ (ÎÞÐèµÇÂ¼, ÓÉ»ªÎªÔÆÆ½Ì¨µ÷ÓÃ)
+// ï¿½ï¿½Îªï¿½ï¿½ IoT ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½Øµï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½Â¼, ï¿½É»ï¿½Îªï¿½ï¿½Æ½Ì¨ï¿½ï¿½ï¿½ï¿½)
 router.use('/huawei', huaweiCallbackRoutes)
 
-// ÒÇ±íÅÌÍ³¼Æ
+// ï¿½Ç±ï¿½ï¿½ï¿½Í³ï¿½ï¿½
 router.use('/dashboard', authMiddleware, dashboardRoutes)
 
-// ÒÔÏÂ½Ó¿ÚÐèÒªµÇÂ¼
+// ï¿½ï¿½ï¿½Â½Ó¿ï¿½ï¿½ï¿½Òªï¿½ï¿½Â¼
 router.use('/devices', authMiddleware, deviceRoutes)
 router.use('/plots', authMiddleware, plotRoutes)
 router.use('/strategies', authMiddleware, strategyRoutes)
@@ -30,5 +31,6 @@ router.use('/irrigation-logs', authMiddleware, irrigationLogRoutes)
 router.use('/alerts', authMiddleware, alertRoutes)
 router.use('/schedules', authMiddleware, scheduleRoutes)
 router.use('/export', authMiddleware, exportRoutes)
+router.use('/ai', authMiddleware, aiRoutes)
 
 export default router

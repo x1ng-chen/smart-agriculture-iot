@@ -1,0 +1,70 @@
+<view class="ai-chat">
+  <!-- header -->
+  <view class="chat-header">
+    <view class="chat-header-icon">🤖</view>
+    <view>
+      <view class="chat-header-title">AI 助手 · 小农</view>
+      <view class="chat-header-sub">由 MiMo 驱动 · 智慧农业专家</view>
+    </view>
+  </view>
+
+  <!-- messages -->
+  <scroll-view id="msgList" class="chat-messages" scroll-y scroll-into-view="msg-{{messages.length}}" enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{messages.length === 0}}" class="chat-empty">
+      <view class="empty-icon">🌱</view>
+      <view class="empty-title">你好，我是小农</view>
+      <view class="empty-desc">我可以帮你查看农田数据、分析灌溉情况、解答种植问题</view>
+      <view class="quick-questions">
+        <view
+          wx:for="{{quickQuestions}}"
+          wx:key="*this"
+          class="quick-chip spring-press"
+          data-question="{{item}}"
+          bindtap="sendQuick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="index" id="msg-{{index}}" class="msg-row {{item.role}} staggerIn">
+      <view class="msg-avatar">
+        <text wx:if="{{item.role === 'assistant'}}">🤖</text>
+        <text wx:else class="user-avatar-text">我</text>
+      </view>
+      <view class="msg-bubble {{item.role}}">
+        <text class="msg-text">{{item.content}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="msg-row assistant">
+      <view class="msg-avatar">🤖</view>
+      <view class="msg-bubble assistant typing">
+        <view class="typing-dot"></view>
+        <view class="typing-dot"></view>
+        <view class="typing-dot"></view>
+      </view>
+    </view>
+
+    <view style="height: 120rpx;"></view>
+  </scroll-view>
+
+  <!-- input -->
+  <view class="chat-input-area">
+    <view class="chat-input-row">
+      <textarea
+        class="chat-input"
+        placeholder="输入问题，如：今天土壤湿度怎么样？"
+        value="{{inputText}}"
+        bindinput="onInput"
+        bindconfirm="sendMessage"
+        auto-height
+        maxlength="-1"
+      />
+      <button class="send-btn spring-press" disabled="{{!inputText || loading}}" bindtap="sendMessage">
+        <text class="send-icon">➤</text>
+      </button>
+    </view>
+    <view wx:if="{{messages.length > 0}}" class="clear-row">
+      <text class="clear-btn" bindtap="clearChat">清空对话</text>
+    </view>
+  </view>
+</view>

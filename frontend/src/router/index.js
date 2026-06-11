@@ -63,6 +63,12 @@ const routes = [
         meta: { title: '定时任务' }
       },
       {
+        path: 'ai-chat',
+        name: 'AiChat',
+        component: () => import('@/views/ai-chat/AiChatView.vue'),
+        meta: { title: 'AI 助手' }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/settings/SettingsView.vue'),
