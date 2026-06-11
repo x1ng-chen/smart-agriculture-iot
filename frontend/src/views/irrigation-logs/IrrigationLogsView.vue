@@ -2,6 +2,9 @@
   <div class="page-wrap">
     <div class="page-toolbar">
       <span class="page-title">灌溉记录</span>
+      <el-button size="small" @click="handleExport">
+        <el-icon><Download /></el-icon> 导出CSV
+      </el-button>
     </div>
     <div class="page-card">
       <el-table :data="tableData" v-loading="loading">
@@ -38,7 +41,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getIrrigationLogs } from '@/api'
+import { getIrrigationLogs, exportIrrigationLogs } from '@/api'
+import { ElMessage } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 
 const tableData = ref([]); const loading = ref(false); const page = ref(1); const total = ref(0); const pageSize = 10
 const statusMap = { running: '灌溉中', completed: '已完成', stopped: '已停止', failed: '失败' }
@@ -47,6 +52,15 @@ async function fetchData() {
   loading.value = true
   try { const res = await getIrrigationLogs({ page: page.value, pageSize }); tableData.value = res.data || []; total.value = res.total || 0 } catch { /* ignore */ }
   finally { loading.value = false }
+}
+function handleExport() {
+  exportIrrigationLogs({}).then(res => {
+    const url = URL.createObjectURL(res)
+    const a = document.createElement('a')
+    a.href = url; a.download = `irrigation-logs-${Date.now()}.csv`; a.click()
+    URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  }).catch(() => ElMessage.error('导出失败'))
 }
 onMounted(fetchData)
 </script>

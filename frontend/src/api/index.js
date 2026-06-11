@@ -3,6 +3,7 @@ import http from './http'
 // 认证
 export const login = (data) => http.post('/auth/login', data)
 export const getMe = () => http.get('/auth/me')
+export const changePassword = (data) => http.post('/auth/change-password', data)
 
 // 仪表盘
 export const getDashboardStats = () => http.get('/dashboard/stats')
@@ -54,3 +55,8 @@ export const deleteSchedule = (id) => http.delete(`/schedules/${id}`)
 // 数据导出
 export const exportSensorData = (params) => http.get('/export/sensor-data', { params, responseType: 'blob' })
 export const exportIrrigationLogs = (params) => http.get('/export/irrigation-logs', { params, responseType: 'blob' })
+
+// AI 模块
+export const aiChat = (data) => http.post('/ai/chat', data)
+export const aiDecision = (deviceId) => http.post('/ai/decision', { device_id: deviceId })
+export const getAiAnomalies = (params) => http.get('/ai/anomalies', { params })

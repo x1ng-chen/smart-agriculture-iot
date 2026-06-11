@@ -40,6 +40,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { changePassword } from '@/api'
 
 const pwdFormRef = ref(null)
 const pwdForm = reactive({ old_password: '', new_password: '', confirm_password: '' })
@@ -55,8 +56,15 @@ const pwdRules = {
 async function handleChangePwd() {
   const valid = await pwdFormRef.value.validate().catch(() => false)
   if (!valid) return
-  // TODO: 调用修改密码API
-  ElMessage.success('密码修改成功')
+  try {
+    await changePassword({ old_password: pwdForm.old_password, new_password: pwdForm.new_password })
+    ElMessage.success('密码修改成功')
+    pwdForm.old_password = ''
+    pwdForm.new_password = ''
+    pwdForm.confirm_password = ''
+  } catch (e) {
+    ElMessage.error(e.response?.data?.message || '修改失败')
+  }
 }
 </script>
 
