@@ -5,7 +5,7 @@ let pool = null
 
 export async function getPool() {
   if (!pool) {
-    pool = mysql.createPool({
+    const poolConfig = {
       host: config.db.host,
       port: config.db.port,
       user: config.db.user,
@@ -14,7 +14,11 @@ export async function getPool() {
       charset: 'utf8mb4',
       waitForConnections: true,
       connectionLimit: 10
-    })
+    }
+    if (config.db.ssl) {
+      poolConfig.ssl = config.db.ssl
+    }
+    pool = mysql.createPool(poolConfig)
   }
   return pool
 }
@@ -66,6 +70,7 @@ export async function initTables() {
       longitude DOUBLE,
       online_status SMALLINT NOT NULL DEFAULT 0,
       last_online_at TIMESTAMP NULL,
+      last_sensor_data TEXT NULL,
       status SMALLINT NOT NULL DEFAULT 1,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -93,39 +98,6 @@ export async function initTables() {
       FOREIGN KEY (plot_id) REFERENCES plots(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    `CREATE TABLE IF NOT EXISTS irrigation_logs (
-      id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      device_id BIGINT NOT NULL,
-      strategy_id BIGINT,
-      trigger_type VARCHAR(16) NOT NULL,
-      operator_id BIGINT,
-      start_time TIMESTAMP NOT NULL,
-      end_time TIMESTAMP NULL,
-      duration_sec INTEGER,
-      water_used_l DOUBLE,
-      status VARCHAR(16) NOT NULL DEFAULT 'running',
-      remark TEXT,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_irrigation_logs_device (device_id),
-      INDEX idx_irrigation_logs_time (start_time),
-      FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE,
-      FOREIGN KEY (strategy_id) REFERENCES irrigation_strategies(id) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
-
-    `CREATE TABLE IF NOT EXISTS alerts (
-      id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      device_id BIGINT NOT NULL,
-      alert_type VARCHAR(32) NOT NULL,
-      alert_level VARCHAR(16) NOT NULL DEFAULT 'warning',
-      message TEXT NOT NULL,
-      resolved TINYINT(1) NOT NULL DEFAULT 0,
-      resolved_at TIMESTAMP NULL,
-      resolved_by BIGINT,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_alerts_device (device_id),
-      INDEX idx_alerts_time (created_at),
-      FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
     `CREATE TABLE IF NOT EXISTS scheduled_tasks (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -141,18 +113,34 @@ export async function initTables() {
       FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    `CREATE TABLE IF NOT EXISTS sensor_data (
+    `CREATE TABLE IF NOT EXISTS sensor_readings (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
       device_id BIGINT NOT NULL,
-      soil_moisture DOUBLE,
-      soil_temp DOUBLE,
-      air_temp DOUBLE,
-      air_humidity DOUBLE,
-      light DOUBLE,
+      soil_moisture DOUBLE NULL,
+      soil_temp DOUBLE NULL,
+      air_temp DOUBLE NULL,
+      air_humidity DOUBLE NULL,
+      light DOUBLE NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_sensor_device_time (device_id, created_at),
+      INDEX idx_sr_device (device_id),
+      INDEX idx_sr_created (created_at),
       FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    `CREATE TABLE IF NOT EXISTS pending_auto_stops (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      device_id BIGINT NOT NULL,
+      device_sn VARCHAR(64) NOT NULL,
+      huawei_device_id VARCHAR(128),
+      log_id VARCHAR(64),
+      expected_stop_at TIMESTAMP NOT NULL,
+      duration_sec INTEGER NOT NULL,
+      completed BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_pas_device (device_id),
+      INDEX idx_pas_pending (completed, expected_stop_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   ]
 
   for (const sql of tables) {
@@ -169,6 +157,20 @@ export async function initTables() {
   // 兼容已有数据库：添加微信登录字段
   try {
     await query("ALTER TABLE users ADD COLUMN wechat_openid VARCHAR(64) DEFAULT NULL AFTER email, ADD UNIQUE INDEX idx_users_wechat_openid (wechat_openid)")
+  } catch (e) {
+    if (e.errno !== 1060) console.error('[db] alter table error:', e.message)
+  }
+
+  // 兼容已有数据库：添加 AI 决策模式
+  try {
+    await query("ALTER TABLE irrigation_strategies ADD COLUMN decision_mode VARCHAR(8) NOT NULL DEFAULT 'rule'")
+  } catch (e) {
+    if (e.errno !== 1060) console.error('[db] alter table error:', e.message)
+  }
+
+  // 兼容已有数据库：添加传感器数据缓存列 (InfluxDB 降级回退)
+  try {
+    await query("ALTER TABLE devices ADD COLUMN last_sensor_data TEXT NULL AFTER last_online_at")
   } catch (e) {
     if (e.errno !== 1060) console.error('[db] alter table error:', e.message)
   }

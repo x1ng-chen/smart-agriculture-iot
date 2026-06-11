@@ -20,6 +20,11 @@ services:
     container_name: smartag-backend
     ports:
       - "8080:8080"
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=your_influxdb_token
+      - INFLUXDB_ORG=smart-agriculture
+      - INFLUXDB_BUCKET=sensor_data
     volumes:
       - ./backend/config/config.yaml:/app/config/config.yaml:ro
       - ./logs:/app/logs
@@ -32,6 +37,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # EMQX: 本地 MQTT Broker，当前架构走华为云 IoT → Webhook，此服务仅用于本地调试
   emqx:
     image: emqx/emqx:5.3
     container_name: smartag-emqx

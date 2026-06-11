@@ -1,6 +1,11 @@
 import { Router } from 'express'
 import { SerialPort } from 'serialport'
 import { query } from '../db.js'
+import {
+  getLatestSensorData, getSensorDataHistory,
+  createIrrigationLog, updateIrrigationLog,
+  checkRunningIrrigation, getRunningIrrigationLog
+} from '../influxdb.js'
 import { success, successWithTotal, error } from '../utils/response.js'
 import config from '../config.js'
 import { sendCommand as huaweiSendCommand } from '../huawei-iot.js'
@@ -137,42 +142,73 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
-// 最新传感器数据
+// 最新传感器数据 (InfluxDB + MySQL 回退)
 router.get('/:id/data/latest', async (req, res) => {
   try {
-    const rows = await query(
-      'SELECT * FROM sensor_data WHERE device_id = ? ORDER BY created_at DESC LIMIT 1',
-      [req.params.id]
-    )
-    res.json(success(rows[0] || null))
+    const row = await getLatestSensorData(req.params.id)
+    if (row) return res.json(success(row))
+
+    // InfluxDB 不可用时回退 MySQL 缓存
+    const devices = await query('SELECT last_sensor_data FROM devices WHERE id = ?', [req.params.id])
+    const cached = devices[0]?.last_sensor_data
+    if (cached) {
+      try {
+        return res.json(success(JSON.parse(cached)))
+      } catch (_) {}
+    }
+    res.json(success(null))
   } catch (e) {
     console.error(e)
     res.status(500).json(error('查询失败'))
   }
 })
 
-// 历史传感器数据
+// 历史传感器数据 (MySQL 优先，InfluxDB 可选)
 router.get('/:id/data/history', async (req, res) => {
   try {
-    const { start, end } = req.query
     const page = parseInt(req.query.page) || 1
     const pageSize = parseInt(req.query.pageSize) || 100
+    const hours = parseInt(req.query.hours) || 24
     const offset = (page - 1) * pageSize
 
-    let where = 'WHERE device_id = ?'
-    const params = [req.params.id]
-
-    if (start) { where += ' AND created_at >= ?'; params.push(start) }
-    if (end) { where += ' AND created_at <= ?'; params.push(end) }
-
-    const countRows = await query(`SELECT count(*) as cnt FROM sensor_data ${where}`, params)
-    const total = countRows[0].cnt
-
     const rows = await query(
-      `SELECT * FROM sensor_data ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-      [...params, pageSize, offset]
+      `SELECT soil_moisture, soil_temp, air_temp, air_humidity, light, created_at as _time
+       FROM sensor_readings
+       WHERE device_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR)
+       ORDER BY created_at ASC
+       LIMIT ? OFFSET ?`,
+      [req.params.id, hours, pageSize, offset]
     )
-    res.json(successWithTotal(rows, total))
+
+    if (rows.length > 0) {
+      const [{ cnt }] = await query(
+        `SELECT COUNT(*) as cnt FROM sensor_readings
+         WHERE device_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR)`,
+        [req.params.id, hours]
+      )
+      return res.json(successWithTotal(rows, cnt))
+    }
+
+    // MySQL 无历史 → 回退 InfluxDB → 再回退设备缓存
+    const result = await getSensorDataHistory(req.params.id, req.query.start, req.query.end, page, pageSize)
+    if (result.rows.length > 0) {
+      return res.json(successWithTotal(result.rows, result.total))
+    }
+
+    const devices = await query('SELECT last_sensor_data FROM devices WHERE id = ?', [req.params.id])
+    const cached = devices[0]?.last_sensor_data
+    if (cached) {
+      try {
+        const d = JSON.parse(cached)
+        return res.json(successWithTotal([{
+          _time: d.updated_at || new Date().toISOString(),
+          soil_moisture: d.soil_moisture, soil_temp: d.soil_temp,
+          air_temp: d.air_temp, air_humidity: d.air_humidity, light: d.light
+        }], 1))
+      } catch (_) {}
+    }
+
+    res.json(successWithTotal([], 0))
   } catch (e) {
     console.error(e)
     res.status(500).json(error('查询失败'))
@@ -263,14 +299,16 @@ router.post('/:id/irrigate/start', async (req, res) => {
     const deviceId = req.params.id
     const { strategy_id, duration_sec } = req.body
 
+    // 输入校验
+    if (duration_sec !== undefined && (typeof duration_sec !== 'number' || duration_sec < 0 || duration_sec > 86400)) {
+      return res.status(400).json(error('灌溉时长必须为 0-86400 秒'))
+    }
+
     const devices = await query('SELECT * FROM devices WHERE id = ?', [deviceId])
     if (devices.length === 0) return res.status(404).json(error('设备不存在'))
 
-    const running = await query(
-      "SELECT id FROM irrigation_logs WHERE device_id = ? AND status = 'running' LIMIT 1",
-      [deviceId]
-    )
-    if (running.length > 0) return res.status(400).json(error('设备正在灌溉中'))
+    const running = await checkRunningIrrigation(deviceId)
+    if (running) return res.status(400).json(error('设备正在灌溉中'))
 
     const device = devices[0]
     const serialManager = getSerialManager(req)
@@ -306,29 +344,43 @@ router.post('/:id/irrigate/start', async (req, res) => {
       return res.status(500).json(error('指令发送失败：无可用的通信通道'))
     }
 
-    // 写入灌溉记录
+    // 写入灌溉记录 (InfluxDB)
     let remark = duration_sec ? `手动灌溉 ${duration_sec}秒` : '手动灌溉'
 
-    const result = await query(
-      `INSERT INTO irrigation_logs (device_id, strategy_id, trigger_type, operator_id, start_time, status, remark)
-       VALUES (?, ?, 'manual', ?, NOW(), 'running', ?)`,
-      [deviceId, strategy_id || null, req.userId, remark]
-    )
-    const logId = result.insertId
+    // 查相关名称
+    const strategyName = strategy_id
+      ? (await query('SELECT strategy_name FROM irrigation_strategies WHERE id = ?', [strategy_id]))[0]?.strategy_name || ''
+      : ''
+    const operatorName = (await query('SELECT real_name FROM users WHERE id = ?', [req.userId]))[0]?.real_name || ''
 
-    // 服务端自动停止（兜底：即使前端关闭也不怕）
+    const logId = await createIrrigationLog({
+      device_id: deviceId,
+      strategy_id: strategy_id || undefined,
+      trigger_type: 'manual',
+      device_sn: device.device_sn,
+      device_name: device.device_name,
+      strategy_name: strategyName,
+      operator_name: operatorName,
+      operator_id: req.userId,
+      remark
+    })
+
+    // 服务端自动停止
     const autoDur = duration_sec || 0
     if (autoDur > 0) {
+      // 持久化到 MySQL，防止服务器重启后定时器丢失
+      const expectedStopAt = new Date(Date.now() + autoDur * 1000)
+      await query(
+        `INSERT INTO pending_auto_stops (device_id, device_sn, huawei_device_id, log_id, expected_stop_at, duration_sec)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [deviceId, device.device_sn, device.huawei_device_id || null, logId, expectedStopAt, autoDur]
+      )
+
       setTimeout(async () => {
         try {
-          // 检查是否还在 running
-          const logs = await query(
-            "SELECT id FROM irrigation_logs WHERE id = ? AND status = 'running' LIMIT 1",
-            [logId]
-          )
-          if (logs.length === 0) return
+          const log = await getRunningIrrigationLog(deviceId)
+          if (!log || log.log_id !== logId) return
 
-          // 下发停止指令
           if (config.huawei.enabled && device.huawei_device_id) {
             huaweiSendCommand(device.huawei_device_id, 'StopIrrigation', {})
           } else {
@@ -345,11 +397,13 @@ router.post('/:id/irrigate/start', async (req, res) => {
             }
           }
 
-          // 更新日志
-          await query(
-            "UPDATE irrigation_logs SET end_time = NOW(), duration_sec = ?, status = 'completed' WHERE id = ?",
-            [autoDur, logId]
-          )
+          await updateIrrigationLog(logId, {
+            status: 'completed',
+            end_time: new Date().toISOString(),
+            duration_sec: autoDur
+          })
+          // 标记持久化记录为已完成
+          await query('UPDATE pending_auto_stops SET completed = 1 WHERE log_id = ?', [logId])
           console.log(`[irrigate] auto-stop: log=${logId} device=${device.device_sn} dur=${autoDur}s`)
         } catch (e) {
           console.error('[irrigate] auto-stop error:', e.message)
@@ -369,20 +423,21 @@ router.post('/:id/irrigate/stop', async (req, res) => {
   try {
     const deviceId = req.params.id
     const devices = await query('SELECT * FROM devices WHERE id = ?', [deviceId])
-    const running = await query(
-      "SELECT id, start_time FROM irrigation_logs WHERE device_id = ? AND status = 'running' LIMIT 1",
-      [deviceId]
-    )
-    if (running.length === 0) return res.status(400).json(error('设备未在灌溉'))
 
-    const log = running[0]
-    const durationSec = Math.round((Date.now() - new Date(log.start_time).getTime()) / 1000)
-    await query(
-      "UPDATE irrigation_logs SET end_time = NOW(), duration_sec = ?, status = 'completed' WHERE id = ?",
-      [durationSec, log.id]
-    )
+    // 尝试获取运行中的灌溉记录（InfluxDB 不可用时为 null，仍允许强制停止）
+    const log = await getRunningIrrigationLog(deviceId)
+    let durationSec = 0
 
-    // 下发停止指令
+    if (log) {
+      durationSec = Math.round((Date.now() - new Date(log._time).getTime()) / 1000)
+      await updateIrrigationLog(log.log_id, {
+        status: 'completed',
+        end_time: new Date().toISOString(),
+        duration_sec: durationSec
+      })
+    }
+
+    // 下发停止指令（无论 InfluxDB 状态，都执行）
     const device = devices[0]
     const serialManager = getSerialManager(req)
 
@@ -402,7 +457,7 @@ router.post('/:id/irrigate/stop', async (req, res) => {
       }
     }
 
-    res.json(success({ duration_sec: durationSec }))
+    res.json(success({ duration_sec: durationSec, forced: !log }))
   } catch (e) {
     console.error(e)
     res.status(500).json(error('操作失败'))

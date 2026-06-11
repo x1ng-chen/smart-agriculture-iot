@@ -33,9 +33,18 @@ logs/
 *.db
 *.sqlite
 
+# Deploy runtime data (InfluxDB, Redis, MySQL volumes)
+deploy/influxdb/data/
+deploy/redis/data/
+deploy/mysql/data/
+!deploy/influxdb/.gitkeep
+!deploy/redis/.gitkeep
+!deploy/mysql/.gitkeep
+
 # Docker
 docker-compose.override.yml
 
 # Device build artifacts
 device/build/*
 !device/build/.gitkeep
+docs/smart-ag-report_backup.pptx

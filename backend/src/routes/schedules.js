@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { success, successWithTotal, error } from '../utils/response.js'
+import { reloadTask, stopTask } from '../scheduler.js'
 
 const router = Router()
 
@@ -49,6 +50,7 @@ router.post('/', async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [device_id, task_name, cron_expr, action, duration_sec || null, enabled ?? true]
     )
+    await reloadTask(result.insertId)
     res.json(success({ id: result.insertId }))
   } catch (e) {
     console.error(e)
@@ -73,6 +75,7 @@ router.put('/:id', async (req, res) => {
 
     params.push(req.params.id)
     await query(`UPDATE scheduled_tasks SET ${fields.join(', ')} WHERE id = ?`, params)
+    await reloadTask(req.params.id)
     res.json(success(null))
   } catch (e) {
     console.error(e)
@@ -84,6 +87,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     await query('DELETE FROM scheduled_tasks WHERE id = ?', [req.params.id])
+    stopTask(parseInt(req.params.id))
     res.json(success(null))
   } catch (e) {
     console.error(e)

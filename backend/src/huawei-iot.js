@@ -10,7 +10,11 @@ async function getIAMToken() {
   const now = Date.now()
   if (cachedToken && now < tokenExpiry) return cachedToken
 
-  const { projectId, region } = config.huawei
+  const { projectId, region, iam } = config.huawei
+  if (!iam?.username || !iam?.password || !iam?.domainId) {
+    console.error('[huawei-iot] IAM credentials not configured (HUAWEI_IAM_USERNAME/PASSWORD/DOMAIN_ID)')
+    return null
+  }
   const iamHost = `iam.${region}.myhuaweicloud.com`
   const authBody = JSON.stringify({
     auth: {
@@ -18,9 +22,9 @@ async function getIAMToken() {
         methods: ['password'],
         password: {
           user: {
-            name: 'x1ng',
-            password: '2222987z',
-            domain: { id: '656f0a6f44dd4c75ba3eb575957405e2' }
+            name: iam.username,
+            password: iam.password,
+            domain: { id: iam.domainId }
           }
         }
       },

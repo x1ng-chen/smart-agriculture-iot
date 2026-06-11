@@ -51,17 +51,23 @@ router.get('/:id', async (req, res) => {
 // 创建策略
 router.post('/', async (req, res) => {
   try {
-    const { strategy_name, plot_id, humidity_min, humidity_max, temp_min, temp_max, irrigation_duration_max, cooldown_interval, water_flow_rate, enabled } = req.body
+    const { strategy_name, plot_id, humidity_min, humidity_max, temp_min, temp_max, irrigation_duration_max, cooldown_interval, water_flow_rate, enabled, decision_mode } = req.body
     if (!strategy_name || humidity_min === undefined || humidity_max === undefined) {
       return res.status(400).json(error('策略名称和湿度阈值不能为空'))
+    }
+    if (decision_mode && !['rule', 'ai'].includes(decision_mode)) {
+      return res.status(400).json(error('decision_mode 必须为 rule 或 ai'))
+    }
+    if (humidity_min < 0 || humidity_max > 100 || humidity_min > humidity_max) {
+      return res.status(400).json(error('湿度阈值范围不合法'))
     }
 
     const result = await query(
       `INSERT INTO irrigation_strategies
-       (strategy_name, plot_id, humidity_min, humidity_max, temp_min, temp_max, irrigation_duration_max, cooldown_interval, water_flow_rate, enabled)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (strategy_name, plot_id, humidity_min, humidity_max, temp_min, temp_max, irrigation_duration_max, cooldown_interval, water_flow_rate, enabled, decision_mode)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [strategy_name, plot_id || null, humidity_min, humidity_max, temp_min || null, temp_max || null,
-       irrigation_duration_max || 1800, cooldown_interval || 3600, water_flow_rate || null, enabled ?? 1]
+       irrigation_duration_max || 1800, cooldown_interval || 3600, water_flow_rate || null, enabled ?? 1, decision_mode || 'rule']
     )
     res.json(success({ id: result.insertId }))
   } catch (e) {
@@ -73,7 +79,7 @@ router.post('/', async (req, res) => {
 // 更新策略
 router.put('/:id', async (req, res) => {
   try {
-    const { strategy_name, plot_id, humidity_min, humidity_max, temp_min, temp_max, irrigation_duration_max, cooldown_interval, water_flow_rate, enabled } = req.body
+    const { strategy_name, plot_id, humidity_min, humidity_max, temp_min, temp_max, irrigation_duration_max, cooldown_interval, water_flow_rate, enabled, decision_mode } = req.body
     const fields = []
     const params = []
 
@@ -87,6 +93,7 @@ router.put('/:id', async (req, res) => {
     if (cooldown_interval !== undefined) { fields.push('cooldown_interval = ?'); params.push(cooldown_interval) }
     if (water_flow_rate !== undefined) { fields.push('water_flow_rate = ?'); params.push(water_flow_rate) }
     if (enabled !== undefined) { fields.push('enabled = ?'); params.push(enabled) }
+    if (decision_mode !== undefined) { fields.push('decision_mode = ?'); params.push(decision_mode) }
 
     if (fields.length === 0) return res.status(400).json(error('无更新内容'))
 
