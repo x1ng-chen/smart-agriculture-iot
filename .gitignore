@@ -58,3 +58,6 @@ docs/ppt_content.json
 docs/ppt_images/
 docs/*.py
 docs/smart-ag-ppt-discussion.md
+
+# Device build GN (generated files, may contain credentials)
+device/build_gn/
