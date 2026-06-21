@@ -66,7 +66,7 @@ export default {
     // 验签方式: "signature" (华为 HMAC-SHA256) | "token" (简单 Token) | "none" (关闭)
     authMode: process.env.WEBHOOK_AUTH_MODE || 'token',
     signatureToken: process.env.WEBHOOK_SIGNATURE_TOKEN || '',
-    fixedToken: process.env.WEBHOOK_FIXED_TOKEN || 'smart-ag-webhook-secret',
+    fixedToken: process.env.WEBHOOK_FIXED_TOKEN || 'CHANGE_ME',
     // 幂等去重 TTL (秒)
     dedupTtl: parseInt(process.env.WEBHOOK_DEDUP_TTL) || 300
   },
