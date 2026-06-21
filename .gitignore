@@ -44,7 +44,15 @@ deploy/mysql/data/
 # Docker
 docker-compose.override.yml
 
+# Device config (contains real credentials — use config.h.example as template)
+device/src/config.h
+
 # Device build artifacts
 device/build/*
 !device/build/.gitkeep
+
+# Backup files
 docs/smart-ag-report_backup.pptx
+docs/PPT制作讨论记录.docx
+docs/ppt_content.json
+docs/ppt_images/

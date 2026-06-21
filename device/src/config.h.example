@@ -1,0 +1,98 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/* ================================================
+ * 连接模式: CONN_MODE_UART 或 CONN_MODE_WIFI_MQTT
+ * ================================================ */
+#define CONN_MODE_UART          1
+#define CONN_MODE_WIFI_MQTT     2
+#define CONNECTION_MODE         CONN_MODE_WIFI_MQTT   /* 华为云直连模式 */
+
+/* ================================================
+ * 设备角色: 取消注释 NODE_B 则为安防节点, 否则为灌溉节点
+ * ================================================ */
+/* #define NODE_B */   /* ← 烧录 Node B 时取消注释此行 */
+
+/* 设备标识 (按节点角色自动选择) */
+#ifdef NODE_B
+  /* ── Node B: 安全监测节点 (E53_IS1) ── */
+  #define DEVICE_SN       "BPN_20240003"
+  #define FW_VERSION      "1.1.0-sec"
+#else
+  /* ── Node A: 环境灌溉节点 (E53_IA1) ── */
+  #define DEVICE_SN       "BPN-20240001"
+  #define FW_VERSION      "1.1.0"
+#endif
+
+/* 采集上报间隔 */
+#define SENSOR_INTERVAL_SEC     30
+#define HEARTBEAT_INTERVAL_SEC  60
+
+/* ========== UART 配置 ========== */
+#define UART_IDX            WIFI_IOT_UART_IDX_0
+#define UART_BAUD_RATE      115200
+
+/* ========== WiFi 配置 ========== */
+/* ⚠️ 替换为你的 WiFi SSID 和密码 */
+#define WIFI_SSID       "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD   "YOUR_WIFI_PASSWORD"
+
+/* ========== 华为云 IoT 平台配置 ========== */
+/* ⚠️ 替换为你的华为云 IoTDA 设备接入点地址 */
+#define HUAWEI_IOT_ENDPOINT     "YOUR_IOT_ENDPOINT.iotda-device.cn-north-4.myhuaweicloud.com"
+#define HUAWEI_IOT_PORT         8883
+
+#ifdef NODE_B
+  /* Node B: 需要在华为云控制台先创建 smart-003 设备 */
+  #define HUAWEI_IOT_DEVICE_ID    "YOUR_PRODUCT_ID_smart-003"
+  #define HUAWEI_IOT_DEVICE_SECRET "YOUR_NODEB_DEVICE_SECRET"
+#else
+  /* Node A (默认) */
+  #define HUAWEI_IOT_DEVICE_ID    "YOUR_PRODUCT_ID_smart-001"
+  #define HUAWEI_IOT_DEVICE_SECRET "YOUR_NODEA_DEVICE_SECRET"
+#endif
+
+/* 华为云 MQTT Topic */
+#define TOPIC_PROPERTY_REPORT   "$oc/devices/" HUAWEI_IOT_DEVICE_ID "/sys/properties/report"
+#define TOPIC_COMMANDS          "$oc/devices/" HUAWEI_IOT_DEVICE_ID "/sys/commands/#"
+#define TOPIC_CMD_RESPONSE      "$oc/devices/" HUAWEI_IOT_DEVICE_ID "/sys/commands/response/request_id="
+
+/* 继电器触发极性 */
+#define RELAY_ACTIVE_LOW        1
+
+/* 缓冲区 */
+#define UART_RX_BUF_SIZE    512
+#define JSON_BUF_SIZE       1024
+
+/* GPIO 引脚定义 ──────────────────────────────────
+ *  E53 标准接口 (BearPi-HM Nano):
+ *    J1-1 GND,  J1-2 VCC (3.3V)
+ *    J1-3 SDA (GPIO0),  J1-4 SCL (GPIO1)
+ *    J1-5 GPIO5,  J1-6 GPIO8
+ *    J1-7 GPIO7,  J1-8 GPIO6
+ * ────────────────────────────────────────────── */
+#ifdef NODE_B
+  /* ── Node B: E53_IS1 安防传感器 ── */
+  #define PIN_PIR                 5    /* GPIO5:  PIR 人体红外输入 */
+  #define PIN_BUZZER              8    /* GPIO8:  蜂鸣器输出 */
+  #define PIN_LED_SEC             7    /* GPIO7:  LED 状态灯 */
+  /* Node B 不使用灌溉传感器, 但保留兼容宏 */
+  #define PIN_SOIL_MOISTURE_ADC   0    /* (未使用) */
+  #define PIN_DHT22_DATA          1    /* (未使用) */
+  #define PIN_RELAY               2    /* (未使用) */
+  #define PIN_I2C_SDA             3    /* (未使用) */
+  #define PIN_I2C_SCL             4    /* (未使用) */
+#else
+  /* ── Node A: E53_IA1 环境传感器 ── */
+  #define PIN_SOIL_MOISTURE_ADC   0
+  #define PIN_DHT22_DATA          1
+  #define PIN_RELAY               2
+  #define PIN_I2C_SDA             3
+  #define PIN_I2C_SCL             4
+  /* Node A 不使用安防传感器, 保留兼容宏 */
+  #define PIN_PIR                 5    /* (未使用) */
+  #define PIN_BUZZER              8    /* (未使用) */
+  #define PIN_LED_SEC             7    /* (未使用) */
+#endif
+
+#endif /* CONFIG_H */
