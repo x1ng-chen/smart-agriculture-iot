@@ -51,8 +51,10 @@ device/src/config.h
 device/build/*
 !device/build/.gitkeep
 
-# Backup files
+# Backup files & temp scripts
 docs/smart-ag-report_backup.pptx
 docs/PPT制作讨论记录.docx
 docs/ppt_content.json
 docs/ppt_images/
+docs/*.py
+docs/smart-ag-ppt-discussion.md
